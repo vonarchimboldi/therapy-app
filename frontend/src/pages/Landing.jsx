@@ -21,21 +21,19 @@ export default function Landing() {
           <h1 className="landing-logo">TherapyTrack</h1>
           <div className="landing-header-actions">
             <Link to="/sign-in" className="btn-secondary">Sign In</Link>
-            <Link to="/sign-up" className="btn-primary">Get Started</Link>
+            <Link to="/sign-up" className="btn-primary">Sign Up</Link>
           </div>
         </div>
       </header>
 
       <main className="landing-main">
         <section className="landing-hero">
-          <h2 className="landing-title">Clinical Session Management<br />for Mental Health Professionals</h2>
+          <h2 className="landing-title">Simple Clinical Session Notes<br />for Therapists</h2>
           <p className="landing-subtitle">
-            A focused, distraction-free platform for therapists to document sessions,
-            track client progress, and maintain comprehensive clinical records.
+            An organized way of tracking your clients and sessions.
           </p>
           <div className="landing-cta">
-            <Link to="/sign-up" className="btn-primary btn-large">Start Free Trial</Link>
-            <Link to="/sign-in" className="btn-secondary btn-large">Sign In</Link>
+            <Link to="/sign-up" className="btn-primary btn-large">Create Account</Link>
           </div>
         </section>
 
@@ -43,46 +41,40 @@ export default function Landing() {
           <div className="feature-grid">
             <div className="feature-card">
               <div className="feature-icon">📅</div>
-              <h3>Schedule Management</h3>
-              <p>View today's appointments at a glance. Schedule, reschedule, and track session status with ease.</p>
+              <h3>Today's Schedule</h3>
+              <p>See all appointments for the day in one view. Schedule sessions, mark them complete or cancelled.</p>
             </div>
 
             <div className="feature-card">
               <div className="feature-icon">📝</div>
-              <h3>Structured Notes</h3>
-              <p>Document life domains, emotional themes, and interventions with organized, searchable clinical notes.</p>
+              <h3>Structured Session Notes</h3>
+              <p>Document life domains discussed, emotional themes present, interventions used, and clinical observations.</p>
             </div>
 
             <div className="feature-card">
               <div className="feature-icon">📊</div>
-              <h3>Progress Analytics</h3>
-              <p>Visualize client progress over time. Track patterns in emotional themes, interventions, and outcomes.</p>
+              <h3>Progress Tracking</h3>
+              <p>Track overall progress (improving/stable/declining) and view analytics on patterns across sessions.</p>
+            </div>
+
+            <div className="feature-card">
+              <div className="feature-icon">👤</div>
+              <h3>Client Management</h3>
+              <p>Maintain client profiles with contact info, emergency contacts, session history, and status tracking.</p>
             </div>
 
             <div className="feature-card">
               <div className="feature-icon">🔒</div>
-              <h3>Data Privacy</h3>
-              <p>Complete data isolation between therapists. Your client data is private, secure, and HIPAA-conscious.</p>
+              <h3>Private & Isolated</h3>
+              <p>Each therapist account is completely isolated. Your clients and notes are yours alone.</p>
             </div>
 
             <div className="feature-card">
-              <div className="feature-icon">🌙</div>
-              <h3>Minimal Design</h3>
-              <p>Clean, distraction-free interface following data visualization best practices. Dark mode included.</p>
-            </div>
-
-            <div className="feature-card">
-              <div className="feature-icon">⚡</div>
-              <h3>Fast & Focused</h3>
-              <p>Spend less time on documentation, more time with clients. Quick session entry and retrieval.</p>
+              <div className="feature-icon">🌿</div>
+              <h3>Clean Interface</h3>
+              <p>Minimal, focused design that's easy on the eyes. Dark mode available for late sessions.</p>
             </div>
           </div>
-        </section>
-
-        <section className="landing-cta-bottom">
-          <h2>Ready to streamline your practice?</h2>
-          <p>Join therapists who are simplifying their clinical documentation.</p>
-          <Link to="/sign-up" className="btn-primary btn-large">Create Your Account</Link>
         </section>
       </main>
 
