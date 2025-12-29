@@ -1820,6 +1820,31 @@ body::before {
    Tufte-inspired clean, centered layout
    ============================================ */
 
+/* Auth page wrapper - ensures full height centering */
+.auth-page-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: var(--space-xl);
+  box-sizing: border-box;
+}
+
+/* Custom auth component styling via Clerk's appearance prop */
+.auth-root-box {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
 /* Override Clerk's default styles for better centering and spacing */
 .cl-rootBox {
   width: 100% !important;

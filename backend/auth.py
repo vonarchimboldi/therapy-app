@@ -12,6 +12,7 @@ from database import get_db
 import sqlite3
 
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
 
 
 @lru_cache(maxsize=1)
@@ -165,7 +166,7 @@ async def get_current_therapist(clerk_user_id: str = Depends(verify_token)) -> D
 
 # Optional: For endpoints that should work without authentication (for testing)
 async def get_current_therapist_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(security, auto_error=False)
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security_optional)
 ) -> Optional[Dict[str, Any]]:
     """
     Optional authentication - returns None if no token provided

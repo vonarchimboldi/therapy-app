@@ -2,18 +2,18 @@ import { SignIn } from '@clerk/clerk-react';
 
 export default function SignInPage() {
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      background: 'var(--background-color, #f5f5f5)'
-    }}>
+    <div className="auth-page-wrapper">
       <SignIn
         path="/sign-in"
         routing="path"
         signUpUrl="/sign-up"
         afterSignInUrl="/dashboard"
+        appearance={{
+          elements: {
+            rootBox: "auth-root-box",
+            card: "auth-card"
+          }
+        }}
       />
     </div>
   );
