@@ -479,6 +479,8 @@ function Dashboard() {
       session_time: session.session_time || '14:00',
       duration_minutes: session.duration_minutes,
       status: session.status || 'completed',
+      notes: session.notes || '',
+      summary: session.summary || '',
       life_domains: session.life_domains || {},
       emotional_themes: session.emotional_themes || {},
       interventions: session.interventions || [],
@@ -643,6 +645,7 @@ function Dashboard() {
                         e.stopPropagation()
                         const client = clients.find(c => c.id === session.client_id)
                         if (client) {
+                          setClientView('summary')
                           setAppView('clients')
                           setSelectedClient(client)
                         }
@@ -662,9 +665,15 @@ function Dashboard() {
                   </div>
 
                   <div className="session-actions" onClick={(e) => e.stopPropagation()}>
-                    <button className="btn-view" onClick={() => openSession(session)}>View</button>
+                    <button className="btn-view" onClick={(e) => {
+                      e.stopPropagation()
+                      openSession(session)
+                    }}>View</button>
                     {session.status === 'scheduled' && (
-                      <button className="btn-cancel" onClick={() => handleCancelSession(session.id)}>Cancel</button>
+                      <button className="btn-cancel" onClick={(e) => {
+                        e.stopPropagation()
+                        handleCancelSession(session.id)
+                      }}>Cancel</button>
                     )}
                   </div>
                 </div>
@@ -716,6 +725,7 @@ function Dashboard() {
                         className="client-name-link"
                         onClick={(e) => {
                           e.stopPropagation()
+                          setClientView('summary')
                           setAppView('clients')
                           setSelectedClient(client)
                         }}
@@ -726,8 +736,14 @@ function Dashboard() {
                     </div>
 
                     <div className="appointment-actions" onClick={(e) => e.stopPropagation()}>
-                      <button className="btn-view" onClick={() => openSession(session)}>View Details</button>
-                      <button className="btn-cancel" onClick={() => handleCancelSession(session.id)}>Cancel</button>
+                      <button className="btn-view" onClick={(e) => {
+                        e.stopPropagation()
+                        openSession(session)
+                      }}>View Details</button>
+                      <button className="btn-cancel" onClick={(e) => {
+                        e.stopPropagation()
+                        handleCancelSession(session.id)
+                      }}>Cancel</button>
                     </div>
                   </div>
                 )
@@ -1094,295 +1110,6 @@ function Dashboard() {
                 </div>
               )}
 
-              {viewingSession && (
-                <div className="modal-overlay" onClick={closeSession}>
-                  <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                    {!editMode ? (
-                      <div className="session-view">
-                        <div className="modal-header">
-                          <h3>Session Details</h3>
-                          <div style={{display: 'flex', gap: '0.5rem'}}>
-                            <button className="btn-edit" onClick={() => setEditMode(true)}>
-                              {viewingSession.status === 'scheduled' ? 'Add Notes' : 'Edit'}
-                            </button>
-                            <button type="button" className="btn-close" onClick={closeSession}>×</button>
-                          </div>
-                        </div>
-
-                        {viewingSession.status === 'scheduled' && (
-                          <div className="scheduled-notice">
-                            📅 This is a scheduled appointment. Click "Add Notes" to document the session after it's completed.
-                          </div>
-                        )}
-
-                        <div className="view-content">
-                          <div className="view-row">
-                            <div className="view-field">
-                              <strong>Date:</strong> {viewingSession.session_date}
-                              {viewingSession.session_time && ` • ${formatTime(viewingSession.session_time)}`}
-                            </div>
-                            <div className="view-field">
-                              <strong>Duration:</strong> {viewingSession.duration_minutes} minutes
-                            </div>
-                            <div className="view-field">
-                              <strong>Status:</strong>
-                              <span className={`badge badge-${viewingSession.status}`}>
-                                {viewingSession.status}
-                              </span>
-                            </div>
-                            {viewingSession.overall_progress && viewingSession.status === 'completed' && (
-                              <div className="view-field">
-                                <strong>Progress:</strong>
-                                <span className={`badge badge-${viewingSession.overall_progress}`}>
-                                  {viewingSession.overall_progress}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {Object.keys(viewingSession.life_domains).filter(k => viewingSession.life_domains[k] && viewingSession.life_domains[k].trim()).length > 0 && (
-                            <div className="view-section">
-                              <strong>Life Domains</strong>
-                              {Object.entries(viewingSession.life_domains)
-                                .filter(([_, v]) => v && typeof v === 'string' && v.trim())
-                                .map(([k, v]) => (
-                                  <div key={k} className="view-note">
-                                    <div className="view-note-label">{formatLabel(k)}</div>
-                                    <div className="view-note-text">{v}</div>
-                                  </div>
-                                ))}
-                            </div>
-                          )}
-
-                          {Object.keys(viewingSession.emotional_themes).filter(k => viewingSession.emotional_themes[k] && viewingSession.emotional_themes[k].trim()).length > 0 && (
-                            <div className="view-section">
-                              <strong>Emotional Themes</strong>
-                              {Object.entries(viewingSession.emotional_themes)
-                                .filter(([_, v]) => v && typeof v === 'string' && v.trim())
-                                .map(([k, v]) => (
-                                  <div key={k} className="view-note">
-                                    <div className="view-note-label">{formatLabel(k)}</div>
-                                    <div className="view-note-text">{v}</div>
-                                  </div>
-                                ))}
-                            </div>
-                          )}
-
-                          {viewingSession.interventions.length > 0 && (
-                            <div className="view-section">
-                              <strong>Interventions Used</strong>
-                              <div className="tags">
-                                {viewingSession.interventions.map(int => (
-                                  <span key={int} className="tag tag-intervention">{int}</span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {viewingSession.session_summary && (
-                            <div className="view-section">
-                              <strong>Session Summary</strong>
-                              <p>{viewingSession.session_summary}</p>
-                            </div>
-                          )}
-
-                          {viewingSession.client_insights && (
-                            <div className="view-section">
-                              <strong>Client Insights</strong>
-                              <p>{viewingSession.client_insights}</p>
-                            </div>
-                          )}
-
-                          {viewingSession.homework_assigned && (
-                            <div className="view-section">
-                              <strong>Homework Assigned</strong>
-                              <p>{viewingSession.homework_assigned}</p>
-                            </div>
-                          )}
-
-                          {viewingSession.clinical_observations && (
-                            <div className="view-section">
-                              <strong>Clinical Observations</strong>
-                              <p>{viewingSession.clinical_observations}</p>
-                            </div>
-                          )}
-
-                          {viewingSession.risk_assessment && (
-                            <div className="view-section risk-section">
-                              <strong>⚠️ Risk Assessment</strong>
-                              <p>{viewingSession.risk_assessment}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <form className="session-form" onSubmit={handleSessionUpdate}>
-                        <div className="modal-header">
-                          <h3>Edit Session</h3>
-                          <button type="button" className="btn-close" onClick={closeSession}>×</button>
-                        </div>
-
-                        <div className="form-row">
-                          <div className="form-field">
-                            <label>Date</label>
-                            <input type="date" name="session_date" value={sessionFormData.session_date} onChange={(e) => setSessionFormData({...sessionFormData, session_date: e.target.value})} required />
-                          </div>
-                          <div className="form-field">
-                            <label>Time</label>
-                            <input type="time" name="session_time" value={sessionFormData.session_time} onChange={(e) => setSessionFormData({...sessionFormData, session_time: e.target.value})} />
-                          </div>
-                        </div>
-
-                        <div className="form-row">
-                          <div className="form-field">
-                            <label>Duration (min)</label>
-                            <input type="number" name="duration_minutes" value={sessionFormData.duration_minutes} onChange={(e) => setSessionFormData({...sessionFormData, duration_minutes: e.target.value})} min="1" required />
-                          </div>
-                          <div className="form-field">
-                            <label>Status</label>
-                            <select name="status" value={sessionFormData.status} onChange={(e) => setSessionFormData({...sessionFormData, status: e.target.value})}>
-                              <option value="scheduled">Scheduled</option>
-                              <option value="completed">Completed</option>
-                              <option value="cancelled">Cancelled</option>
-                              <option value="no-show">No-Show</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="form-section">
-                          <h4>Life Domains Discussed</h4>
-                          <p className="section-hint">Check the domains that came up in this session and add detailed notes</p>
-                          {LIFE_DOMAINS.map(domain => (
-                            <div key={domain} className="domain-field">
-                              <label className="domain-checkbox">
-                                <input
-                                  type="checkbox"
-                                  checked={sessionFormData.life_domains[domain] !== undefined && sessionFormData.life_domains[domain] !== ''}
-                                  onChange={(e) => {
-                                    const newDomains = {...sessionFormData.life_domains}
-                                    if (e.target.checked) {
-                                      newDomains[domain] = ''
-                                    } else {
-                                      delete newDomains[domain]
-                                    }
-                                    setSessionFormData({...sessionFormData, life_domains: newDomains})
-                                  }}
-                                />
-                                <span className="domain-label">{formatLabel(domain)}</span>
-                              </label>
-                              {(sessionFormData.life_domains[domain] !== undefined && sessionFormData.life_domains[domain] !== null) && (
-                                <textarea
-                                  value={sessionFormData.life_domains[domain] || ''}
-                                  onChange={(e) => setSessionFormData({
-                                    ...sessionFormData,
-                                    life_domains: {...sessionFormData.life_domains, [domain]: e.target.value}
-                                  })}
-                                  placeholder={`What was discussed about ${formatLabel(domain).toLowerCase()}?`}
-                                  rows="3"
-                                />
-                              )}
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="form-section">
-                          <h4>Emotional Themes Present</h4>
-                          <p className="section-hint">Check the emotions that were present and describe them</p>
-                          {EMOTIONAL_THEMES.map(emotion => (
-                            <div key={emotion} className="domain-field">
-                              <label className="domain-checkbox">
-                                <input
-                                  type="checkbox"
-                                  checked={sessionFormData.emotional_themes[emotion] !== undefined && sessionFormData.emotional_themes[emotion] !== ''}
-                                  onChange={(e) => {
-                                    const newThemes = {...sessionFormData.emotional_themes}
-                                    if (e.target.checked) {
-                                      newThemes[emotion] = ''
-                                    } else {
-                                      delete newThemes[emotion]
-                                    }
-                                    setSessionFormData({...sessionFormData, emotional_themes: newThemes})
-                                  }}
-                                />
-                                <span className="domain-label">{formatLabel(emotion)}</span>
-                              </label>
-                              {(sessionFormData.emotional_themes[emotion] !== undefined && sessionFormData.emotional_themes[emotion] !== null) && (
-                                <textarea
-                                  value={sessionFormData.emotional_themes[emotion] || ''}
-                                  onChange={(e) => setSessionFormData({
-                                    ...sessionFormData,
-                                    emotional_themes: {...sessionFormData.emotional_themes, [emotion]: e.target.value}
-                                  })}
-                                  placeholder={`Describe the ${formatLabel(emotion).toLowerCase()} that was present...`}
-                                  rows="3"
-                                />
-                              )}
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="form-section">
-                          <h4>Interventions</h4>
-                          <div className="checkbox-grid">
-                            {INTERVENTIONS.map(intervention => (
-                              <label key={intervention} className="checkbox-field">
-                                <input type="checkbox" checked={sessionFormData.interventions.includes(intervention)} onChange={() => {
-                                  const current = sessionFormData.interventions
-                                  setSessionFormData({
-                                    ...sessionFormData,
-                                    interventions: current.includes(intervention) ? current.filter(i => i !== intervention) : [...current, intervention]
-                                  })
-                                }} />
-                                <span>{intervention}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="form-field">
-                          <label>Overall Progress</label>
-                          <select name="overall_progress" value={sessionFormData.overall_progress} onChange={(e) => setSessionFormData({...sessionFormData, overall_progress: e.target.value})}>
-                            <option value="improving">Improving</option>
-                            <option value="stable">Stable</option>
-                            <option value="declining">Declining</option>
-                          </select>
-                        </div>
-
-                        <div className="form-field">
-                          <label>Session Summary</label>
-                          <textarea name="session_summary" value={sessionFormData.session_summary} onChange={(e) => setSessionFormData({...sessionFormData, session_summary: e.target.value})} rows="3" placeholder="Brief overview..." />
-                        </div>
-
-                        <div className="form-field">
-                          <label>Client Insights</label>
-                          <textarea name="client_insights" value={sessionFormData.client_insights} onChange={(e) => setSessionFormData({...sessionFormData, client_insights: e.target.value})} rows="2" placeholder="Key realizations..." />
-                        </div>
-
-                        <div className="form-field">
-                          <label>Homework</label>
-                          <textarea name="homework_assigned" value={sessionFormData.homework_assigned} onChange={(e) => setSessionFormData({...sessionFormData, homework_assigned: e.target.value})} rows="2" placeholder="Tasks assigned..." />
-                        </div>
-
-                        <div className="form-field">
-                          <label>Clinical Observations</label>
-                          <textarea name="clinical_observations" value={sessionFormData.clinical_observations} onChange={(e) => setSessionFormData({...sessionFormData, clinical_observations: e.target.value})} rows="2" placeholder="Professional observations..." />
-                        </div>
-
-                        <div className="form-field">
-                          <label>Risk Assessment</label>
-                          <textarea name="risk_assessment" value={sessionFormData.risk_assessment} onChange={(e) => setSessionFormData({...sessionFormData, risk_assessment: e.target.value})} rows="2" placeholder="Safety concerns..." />
-                        </div>
-
-                        <div style={{display: 'flex', gap: '0.75rem'}}>
-                          <button type="button" className="btn-secondary" onClick={() => setEditMode(false)}>Cancel</button>
-                          <button type="submit" className="btn-submit-modal">Update Session</button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {clientView === 'summary' && (
                 <div className="client-summary">
                   {/* Session Prep Card */}
@@ -1744,6 +1471,333 @@ function Dashboard() {
             </>
           )}
         </main>
+        </div>
+      )}
+
+      {/* Session View/Edit Modal */}
+      {viewingSession && (
+        <div className="modal-overlay" onClick={closeSession}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            {!editMode ? (
+              <div className="session-view">
+                <div className="modal-header">
+                  <h3>Session Details</h3>
+                  <div style={{display: 'flex', gap: '0.5rem'}}>
+                    <button className="btn-edit" onClick={() => setEditMode(true)}>
+                      {viewingSession.status === 'scheduled' ? 'Add Notes' : 'Edit'}
+                    </button>
+                    <button type="button" className="btn-close" onClick={closeSession}>×</button>
+                  </div>
+                </div>
+
+                {viewingSession.status === 'scheduled' && (
+                  <div className="scheduled-notice">
+                    📅 This is a scheduled appointment. Click "Add Notes" to document the session after it's completed.
+                  </div>
+                )}
+
+                <div className="view-content">
+                  <div className="view-row">
+                    <div className="view-field">
+                      <strong>Date:</strong> {viewingSession.session_date}
+                      {viewingSession.session_time && ` • ${formatTime(viewingSession.session_time)}`}
+                    </div>
+                    <div className="view-field">
+                      <strong>Duration:</strong> {viewingSession.duration_minutes} minutes
+                    </div>
+                    <div className="view-field">
+                      <strong>Status:</strong>
+                      <span className={`badge badge-${viewingSession.status}`}>
+                        {viewingSession.status}
+                      </span>
+                    </div>
+                    {viewingSession.overall_progress && viewingSession.status === 'completed' && (
+                      <div className="view-field">
+                        <strong>Progress:</strong>
+                        <span className={`badge badge-${viewingSession.overall_progress}`}>
+                          {viewingSession.overall_progress}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {viewingSession.summary && (
+                    <div className="view-section">
+                      <strong>Quick Summary</strong>
+                      <p>{viewingSession.summary}</p>
+                    </div>
+                  )}
+
+                  {viewingSession.notes && (
+                    <div className="view-section">
+                      <strong>Session Notes</strong>
+                      <p style={{whiteSpace: 'pre-wrap'}}>{viewingSession.notes}</p>
+                    </div>
+                  )}
+
+                  {Object.keys(viewingSession.life_domains || {}).filter(k => viewingSession.life_domains[k] && viewingSession.life_domains[k].trim()).length > 0 && (
+                    <div className="view-section">
+                      <strong>Life Domains</strong>
+                      {Object.entries(viewingSession.life_domains)
+                        .filter(([_, v]) => v && typeof v === 'string' && v.trim())
+                        .map(([k, v]) => (
+                          <div key={k} className="view-note">
+                            <div className="view-note-label">{formatLabel(k)}</div>
+                            <div className="view-note-text">{v}</div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {Object.keys(viewingSession.emotional_themes || {}).filter(k => viewingSession.emotional_themes[k] && viewingSession.emotional_themes[k].trim()).length > 0 && (
+                    <div className="view-section">
+                      <strong>Emotional Themes</strong>
+                      {Object.entries(viewingSession.emotional_themes)
+                        .filter(([_, v]) => v && typeof v === 'string' && v.trim())
+                        .map(([k, v]) => (
+                          <div key={k} className="view-note">
+                            <div className="view-note-label">{formatLabel(k)}</div>
+                            <div className="view-note-text">{v}</div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {viewingSession.interventions && viewingSession.interventions.length > 0 && (
+                    <div className="view-section">
+                      <strong>Interventions Used</strong>
+                      <div className="tags">
+                        {viewingSession.interventions.map(int => (
+                          <span key={int} className="tag tag-intervention">{int}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {viewingSession.session_summary && (
+                    <div className="view-section">
+                      <strong>Session Summary</strong>
+                      <p>{viewingSession.session_summary}</p>
+                    </div>
+                  )}
+
+                  {viewingSession.client_insights && (
+                    <div className="view-section">
+                      <strong>Client Insights</strong>
+                      <p>{viewingSession.client_insights}</p>
+                    </div>
+                  )}
+
+                  {viewingSession.homework_assigned && (
+                    <div className="view-section">
+                      <strong>Homework Assigned</strong>
+                      <p>{viewingSession.homework_assigned}</p>
+                    </div>
+                  )}
+
+                  {viewingSession.clinical_observations && (
+                    <div className="view-section">
+                      <strong>Clinical Observations</strong>
+                      <p>{viewingSession.clinical_observations}</p>
+                    </div>
+                  )}
+
+                  {viewingSession.risk_assessment && (
+                    <div className="view-section risk-section">
+                      <strong>⚠️ Risk Assessment</strong>
+                      <p>{viewingSession.risk_assessment}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <form className="session-form" onSubmit={handleSessionUpdate}>
+                <div className="modal-header">
+                  <h3>Edit Session</h3>
+                  <button type="button" className="btn-close" onClick={closeSession}>×</button>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-field">
+                    <label>Date</label>
+                    <input type="date" name="session_date" value={sessionFormData.session_date} onChange={(e) => setSessionFormData({...sessionFormData, session_date: e.target.value})} required />
+                  </div>
+                  <div className="form-field">
+                    <label>Time</label>
+                    <input type="time" name="session_time" value={sessionFormData.session_time} onChange={(e) => setSessionFormData({...sessionFormData, session_time: e.target.value})} />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-field">
+                    <label>Duration (min)</label>
+                    <input type="number" name="duration_minutes" value={sessionFormData.duration_minutes} onChange={(e) => setSessionFormData({...sessionFormData, duration_minutes: e.target.value})} min="1" required />
+                  </div>
+                  <div className="form-field">
+                    <label>Status</label>
+                    <select name="status" value={sessionFormData.status} onChange={(e) => setSessionFormData({...sessionFormData, status: e.target.value})}>
+                      <option value="scheduled">Scheduled</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="no-show">No-Show</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h4>Session Notes</h4>
+                  <p className="section-hint">Free-text notes from this session</p>
+                  <textarea
+                    name="notes"
+                    value={sessionFormData.notes}
+                    onChange={(e) => setSessionFormData({...sessionFormData, notes: e.target.value})}
+                    placeholder="Main session notes..."
+                    rows="12"
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label>Quick Summary</label>
+                  <input
+                    type="text"
+                    name="summary"
+                    value={sessionFormData.summary}
+                    onChange={(e) => setSessionFormData({...sessionFormData, summary: e.target.value})}
+                    placeholder="One-line summary for quick reference..."
+                  />
+                </div>
+
+                <div className="form-section">
+                  <h4>Life Domains Discussed</h4>
+                  <p className="section-hint">Check the domains that came up in this session and add detailed notes</p>
+                  {LIFE_DOMAINS.map(domain => (
+                    <div key={domain} className="domain-field">
+                      <label className="domain-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={sessionFormData.life_domains[domain] !== undefined && sessionFormData.life_domains[domain] !== ''}
+                          onChange={(e) => {
+                            const newDomains = {...sessionFormData.life_domains}
+                            if (e.target.checked) {
+                              newDomains[domain] = ''
+                            } else {
+                              delete newDomains[domain]
+                            }
+                            setSessionFormData({...sessionFormData, life_domains: newDomains})
+                          }}
+                        />
+                        <span className="domain-label">{formatLabel(domain)}</span>
+                      </label>
+                      {(sessionFormData.life_domains[domain] !== undefined && sessionFormData.life_domains[domain] !== null) && (
+                        <textarea
+                          value={sessionFormData.life_domains[domain] || ''}
+                          onChange={(e) => setSessionFormData({
+                            ...sessionFormData,
+                            life_domains: {...sessionFormData.life_domains, [domain]: e.target.value}
+                          })}
+                          placeholder={`What was discussed about ${formatLabel(domain).toLowerCase()}?`}
+                          rows="3"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="form-section">
+                  <h4>Emotional Themes Present</h4>
+                  <p className="section-hint">Check the emotions that were present and describe them</p>
+                  {EMOTIONAL_THEMES.map(emotion => (
+                    <div key={emotion} className="domain-field">
+                      <label className="domain-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={sessionFormData.emotional_themes[emotion] !== undefined && sessionFormData.emotional_themes[emotion] !== ''}
+                          onChange={(e) => {
+                            const newThemes = {...sessionFormData.emotional_themes}
+                            if (e.target.checked) {
+                              newThemes[emotion] = ''
+                            } else {
+                              delete newThemes[emotion]
+                            }
+                            setSessionFormData({...sessionFormData, emotional_themes: newThemes})
+                          }}
+                        />
+                        <span className="domain-label">{formatLabel(emotion)}</span>
+                      </label>
+                      {(sessionFormData.emotional_themes[emotion] !== undefined && sessionFormData.emotional_themes[emotion] !== null) && (
+                        <textarea
+                          value={sessionFormData.emotional_themes[emotion] || ''}
+                          onChange={(e) => setSessionFormData({
+                            ...sessionFormData,
+                            emotional_themes: {...sessionFormData.emotional_themes, [emotion]: e.target.value}
+                          })}
+                          placeholder={`Describe the ${formatLabel(emotion).toLowerCase()} that was present...`}
+                          rows="3"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="form-section">
+                  <h4>Interventions</h4>
+                  <div className="checkbox-grid">
+                    {INTERVENTIONS.map(intervention => (
+                      <label key={intervention} className="checkbox-field">
+                        <input type="checkbox" checked={sessionFormData.interventions.includes(intervention)} onChange={() => {
+                          const current = sessionFormData.interventions
+                          setSessionFormData({
+                            ...sessionFormData,
+                            interventions: current.includes(intervention) ? current.filter(i => i !== intervention) : [...current, intervention]
+                          })
+                        }} />
+                        <span>{intervention}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-field">
+                  <label>Overall Progress</label>
+                  <select name="overall_progress" value={sessionFormData.overall_progress} onChange={(e) => setSessionFormData({...sessionFormData, overall_progress: e.target.value})}>
+                    <option value="improving">Improving</option>
+                    <option value="stable">Stable</option>
+                    <option value="declining">Declining</option>
+                  </select>
+                </div>
+
+                <div className="form-field">
+                  <label>Session Summary</label>
+                  <textarea name="session_summary" value={sessionFormData.session_summary} onChange={(e) => setSessionFormData({...sessionFormData, session_summary: e.target.value})} rows="3" placeholder="Brief overview..." />
+                </div>
+
+                <div className="form-field">
+                  <label>Client Insights</label>
+                  <textarea name="client_insights" value={sessionFormData.client_insights} onChange={(e) => setSessionFormData({...sessionFormData, client_insights: e.target.value})} rows="2" placeholder="Key realizations..." />
+                </div>
+
+                <div className="form-field">
+                  <label>Homework</label>
+                  <textarea name="homework_assigned" value={sessionFormData.homework_assigned} onChange={(e) => setSessionFormData({...sessionFormData, homework_assigned: e.target.value})} rows="2" placeholder="Tasks assigned..." />
+                </div>
+
+                <div className="form-field">
+                  <label>Clinical Observations</label>
+                  <textarea name="clinical_observations" value={sessionFormData.clinical_observations} onChange={(e) => setSessionFormData({...sessionFormData, clinical_observations: e.target.value})} rows="2" placeholder="Professional observations..." />
+                </div>
+
+                <div className="form-field">
+                  <label>Risk Assessment</label>
+                  <textarea name="risk_assessment" value={sessionFormData.risk_assessment} onChange={(e) => setSessionFormData({...sessionFormData, risk_assessment: e.target.value})} rows="2" placeholder="Safety concerns..." />
+                </div>
+
+                <div style={{display: 'flex', gap: '0.75rem'}}>
+                  <button type="button" className="btn-secondary" onClick={() => setEditMode(false)}>Cancel</button>
+                  <button type="submit" className="btn-submit-modal">Update Session</button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       )}
 
