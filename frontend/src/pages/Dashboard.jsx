@@ -611,9 +611,6 @@ function Dashboard() {
         <div className="today-container view-container">
           <div className="today-header">
             <h2>Today's Schedule - {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h2>
-            <button className="btn-primary" onClick={() => setShowScheduleModal(true)}>
-              + Schedule Appointment
-            </button>
           </div>
 
           {loading ? (
@@ -640,7 +637,19 @@ function Dashboard() {
                   </div>
 
                   <div className="session-client-info">
-                    <h3>{session.first_name} {session.last_name}</h3>
+                    <h3
+                      className="client-name-link"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const client = clients.find(c => c.id === session.client_id)
+                        if (client) {
+                          setAppView('clients')
+                          setSelectedClient(client)
+                        }
+                      }}
+                    >
+                      {session.first_name} {session.last_name}
+                    </h3>
                     <span className={`badge badge-${session.status}`}>{session.status}</span>
                   </div>
 
@@ -703,7 +712,16 @@ function Dashboard() {
                     </div>
 
                     <div className="appointment-info">
-                      <h3>{client.first_name} {client.last_name}</h3>
+                      <h3
+                        className="client-name-link"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setAppView('clients')
+                          setSelectedClient(client)
+                        }}
+                      >
+                        {client.first_name} {client.last_name}
+                      </h3>
                       <p className="appointment-duration">{session.duration_minutes} minutes</p>
                     </div>
 
@@ -870,7 +888,7 @@ function Dashboard() {
                           value={sessionFormData.notes}
                           onChange={(e) => setSessionFormData({...sessionFormData, notes: e.target.value})}
                           placeholder="Main session notes..."
-                          rows="5"
+                          rows="12"
                         />
                       </div>
 

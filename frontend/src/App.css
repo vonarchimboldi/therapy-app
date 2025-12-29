@@ -2362,6 +2362,17 @@ body::before {
   color: var(--color-accent);
 }
 
+/* Clickable client names */
+.client-name-link {
+  cursor: pointer;
+  transition: color 150ms;
+}
+
+.client-name-link:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .prep-header {
