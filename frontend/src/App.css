@@ -1822,10 +1822,22 @@ body::before {
 
 /* Override Clerk's default styles for better centering and spacing */
 .cl-rootBox {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 0 auto !important;
+}
+
+.cl-component {
+  margin: 0 auto !important;
+}
+
+.cl-internal-b3fm6y {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
 }
 
 .cl-card {
@@ -1833,8 +1845,9 @@ body::before {
   border-radius: var(--radius-lg) !important;
   border: 1px solid var(--color-border) !important;
   padding: var(--space-2xl) !important;
-  width: 100%;
-  max-width: 420px;
+  width: 100% !important;
+  max-width: 420px !important;
+  margin: 0 auto !important;
 }
 
 .cl-headerTitle {
