@@ -123,6 +123,8 @@ function Dashboard() {
     session_time: '14:00',
     duration_minutes: 50,
     status: 'completed',
+    notes: '',
+    summary: '',
     life_domains: {},
     emotional_themes: {},
     interventions: [],
@@ -133,6 +135,13 @@ function Dashboard() {
     clinical_observations: '',
     risk_assessment: ''
   })
+
+  // Todo state
+  const [clientTodos, setClientTodos] = useState([])
+  const [newTodoText, setNewTodoText] = useState('')
+
+  // Session prep state
+  const [sessionPrep, setSessionPrep] = useState(null)
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -160,7 +169,12 @@ function Dashboard() {
   useEffect(() => {
     if (selectedClient) {
       fetchSessions(selectedClient.id)
+      fetchTodos(selectedClient.id)
+      fetchSessionPrep(selectedClient.id)
       setClientView('summary')
+    } else {
+      setClientTodos([])
+      setSessionPrep(null)
     }
   }, [selectedClient])
 
@@ -236,6 +250,81 @@ function Dashboard() {
           return a.session_date.localeCompare(b.session_date)
         })
       setAllScheduledSessions(scheduled)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  // Todo functions
+  const fetchTodos = async (clientId) => {
+    try {
+      const token = await getToken()
+      const response = await fetch(`${API_BASE}/todos?client_id=${clientId}&status=open`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (!response.ok) throw new Error('Failed to fetch todos')
+      const data = await response.json()
+      setClientTodos(data)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  const createTodo = async (text, clientId, sourceSessionId = null) => {
+    try {
+      const token = await getToken()
+      const response = await fetch(`${API_BASE}/todos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          text,
+          client_id: clientId,
+          source_session_id: sourceSessionId
+        })
+      })
+      if (!response.ok) throw new Error('Failed to create todo')
+      await fetchTodos(clientId)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  const updateTodoStatus = async (todoId, status, completedSessionId = null) => {
+    try {
+      const token = await getToken()
+      const response = await fetch(`${API_BASE}/todos/${todoId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          status,
+          completed_session_id: completedSessionId
+        })
+      })
+      if (!response.ok) throw new Error('Failed to update todo')
+      // Refresh todos for the current client
+      if (selectedClient) {
+        await fetchTodos(selectedClient.id)
+      }
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  const fetchSessionPrep = async (clientId) => {
+    try {
+      const token = await getToken()
+      const response = await fetch(`${API_BASE}/clients/${clientId}/session-prep`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (!response.ok) throw new Error('Failed to fetch session prep')
+      const data = await response.json()
+      setSessionPrep(data)
     } catch (err) {
       setError(err.message)
     }
@@ -772,6 +861,91 @@ function Dashboard() {
                         </div>
                       </div>
 
+                      {/* Session Notes Section */}
+                      <div className="form-section">
+                        <h4>Session Notes</h4>
+                        <p className="section-hint">Free-text notes from this session</p>
+                        <textarea
+                          name="notes"
+                          value={sessionFormData.notes}
+                          onChange={(e) => setSessionFormData({...sessionFormData, notes: e.target.value})}
+                          placeholder="Main session notes..."
+                          rows="5"
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label>Quick Summary</label>
+                        <input
+                          type="text"
+                          name="summary"
+                          value={sessionFormData.summary}
+                          onChange={(e) => setSessionFormData({...sessionFormData, summary: e.target.value})}
+                          placeholder="One-line summary for quick reference..."
+                        />
+                      </div>
+
+                      {/* To-Dos Section */}
+                      {selectedClient && (
+                        <div className="form-section">
+                          <h4>To-Dos</h4>
+                          <p className="section-hint">Open to-dos from previous sessions</p>
+
+                          {clientTodos.length > 0 ? (
+                            <div className="todos-list">
+                              {clientTodos.map(todo => (
+                                <label key={todo.id} className="todo-item">
+                                  <input
+                                    type="checkbox"
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        // Mark as completed - will be updated on form submit
+                                        updateTodoStatus(todo.id, 'completed', null)
+                                      }
+                                    }}
+                                  />
+                                  <span>{todo.text}</span>
+                                </label>
+                              ))}
+                            </div>
+                          ) : (
+                            <p style={{color: 'var(--color-text-secondary)', fontStyle: 'italic'}}>
+                              No open to-dos
+                            </p>
+                          )}
+
+                          <div className="add-todo">
+                            <input
+                              type="text"
+                              value={newTodoText}
+                              onChange={(e) => setNewTodoText(e.target.value)}
+                              placeholder="Add a new to-do for future sessions..."
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  if (newTodoText.trim()) {
+                                    createTodo(newTodoText, selectedClient.id)
+                                    setNewTodoText('')
+                                  }
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (newTodoText.trim()) {
+                                  createTodo(newTodoText, selectedClient.id)
+                                  setNewTodoText('')
+                                }
+                              }}
+                              className="btn-secondary"
+                            >
+                              Add To-Do
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="form-section">
                         <h4>Life Domains Discussed</h4>
                         <p className="section-hint">Check the domains that came up in this session and add detailed notes</p>
@@ -1193,6 +1367,124 @@ function Dashboard() {
 
               {clientView === 'summary' && (
                 <div className="client-summary">
+                  {/* Session Prep Card */}
+                  {sessionPrep && (
+                    <div className="session-prep-card">
+                      <div className="prep-header">
+                        <h3>Prepare for Session</h3>
+                        <button
+                          className="btn-primary"
+                          onClick={() => {
+                            // Create a new session and open the form
+                            setSessionFormData({
+                              ...sessionFormData,
+                              session_date: new Date().toISOString().split('T')[0],
+                              session_time: new Date().toTimeString().split(':').slice(0, 2).join(':'),
+                              status: 'scheduled'
+                            })
+                            setShowSessionForm(true)
+                          }}
+                        >
+                          Start Session
+                        </button>
+                      </div>
+
+                      <div className="prep-content">
+                        {/* Last Session */}
+                        {sessionPrep.last_session && (
+                          <div className="prep-section">
+                            <h4>Last Session</h4>
+                            <div className="last-session-summary">
+                              <div className="session-date">
+                                {new Date(sessionPrep.last_session.session_date).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                                {sessionPrep.last_session.session_time && ` • ${formatTime(sessionPrep.last_session.session_time)}`}
+                              </div>
+                              {sessionPrep.last_session.summary && (
+                                <p className="session-summary-text">{sessionPrep.last_session.summary}</p>
+                              )}
+                              {sessionPrep.last_session.notes && (
+                                <p className="session-notes-preview">
+                                  {sessionPrep.last_session.notes.substring(0, 150)}
+                                  {sessionPrep.last_session.notes.length > 150 && '...'}
+                                </p>
+                              )}
+                              <button
+                                className="btn-link"
+                                onClick={() => openSession(sessionPrep.last_session)}
+                              >
+                                View full notes →
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Open To-Dos */}
+                        <div className="prep-section">
+                          <h4>Open To-Dos ({sessionPrep.open_todos.length})</h4>
+                          {sessionPrep.open_todos.length > 0 ? (
+                            <div className="prep-todos-list">
+                              {sessionPrep.open_todos.map(todo => (
+                                <div key={todo.id} className="prep-todo-item">
+                                  <span className="todo-text">{todo.text}</span>
+                                  {todo.source_session_date && (
+                                    <span className="todo-context">
+                                      from {new Date(todo.source_session_date).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric'
+                                      })}
+                                      {todo.sessions_ago !== null && todo.sessions_ago > 0 && (
+                                        `, ${todo.sessions_ago} session${todo.sessions_ago > 1 ? 's' : ''} ago`
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p style={{color: 'var(--color-text-secondary)', fontStyle: 'italic'}}>
+                              No open to-dos
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Quick Stats */}
+                        <div className="prep-section prep-stats">
+                          <div className="prep-stat">
+                            <div className="stat-label">Total Sessions</div>
+                            <div className="stat-value">{sessionPrep.stats.total_sessions}</div>
+                          </div>
+                          {sessionPrep.stats.days_as_client !== null && (
+                            <div className="prep-stat">
+                              <div className="stat-label">Client Since</div>
+                              <div className="stat-value">
+                                {Math.floor(sessionPrep.stats.days_as_client / 365) > 0
+                                  ? `${Math.floor(sessionPrep.stats.days_as_client / 365)}y`
+                                  : Math.floor(sessionPrep.stats.days_as_client / 30) > 0
+                                  ? `${Math.floor(sessionPrep.stats.days_as_client / 30)}mo`
+                                  : `${sessionPrep.stats.days_as_client}d`}
+                              </div>
+                            </div>
+                          )}
+                          {sessionPrep.stats.last_session_date && (
+                            <div className="prep-stat">
+                              <div className="stat-label">Last Session</div>
+                              <div className="stat-value">
+                                {new Date(sessionPrep.stats.last_session_date).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="summary-card">
                     <h3>Client Information</h3>
                     <div className="summary-details">

@@ -2156,3 +2156,222 @@ body::before {
     gap: var(--space-sm);
   }
 }
+
+/* ============================================
+   TODO STYLING
+   ============================================ */
+
+.todos-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.todo-item:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+.todo-item input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.todo-item span {
+  flex: 1;
+  color: var(--color-text-primary);
+}
+
+.add-todo {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.add-todo input {
+  flex: 1;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+.add-todo input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(82, 166, 111, 0.1);
+}
+
+.add-todo button {
+  white-space: nowrap;
+}
+
+/* ============================================
+   SESSION PREP CARD
+   ============================================ */
+
+.session-prep-card {
+  background: linear-gradient(135deg, rgba(82, 166, 111, 0.05) 0%, rgba(107, 201, 138, 0.05) 100%);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+
+.prep-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prep-header h3 {
+  margin: 0;
+  color: var(--color-accent);
+  font-size: 1.25rem;
+}
+
+.prep-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.prep-section {
+  background: var(--color-surface);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.prep-section h4 {
+  margin: 0 0 var(--space-md) 0;
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+/* Last Session Summary */
+.last-session-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.session-date {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.session-summary-text {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.session-notes-preview {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  text-decoration: none;
+  transition: color 150ms;
+}
+
+.btn-link:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+/* Prep To-Dos */
+.prep-todos-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.prep-todo-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+.todo-text {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.todo-context {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+/* Prep Stats */
+.prep-stats {
+  display: flex;
+  gap: var(--space-lg);
+  justify-content: space-around;
+}
+
+.prep-stat {
+  text-align: center;
+}
+
+.prep-stat .stat-label {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-xs);
+}
+
+.prep-stat .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .prep-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+
+  .prep-stats {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+}

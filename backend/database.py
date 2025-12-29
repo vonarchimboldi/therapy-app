@@ -93,6 +93,34 @@ def init_db():
         cursor.execute("ALTER TABLE sessions ADD COLUMN therapist_id INTEGER REFERENCES therapists(id)")
         print("Added therapist_id column to sessions table")
 
+    # Migration: Add notes and summary fields to sessions table
+    if 'notes' not in session_columns:
+        cursor.execute("ALTER TABLE sessions ADD COLUMN notes TEXT")
+        print("Added notes column to sessions table")
+
+    if 'summary' not in session_columns:
+        cursor.execute("ALTER TABLE sessions ADD COLUMN summary TEXT")
+        print("Added summary column to sessions table")
+
+    # Create todos table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS todos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_id INTEGER NOT NULL,
+            therapist_id INTEGER NOT NULL,
+            text TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'open',
+            source_session_id INTEGER,
+            completed_session_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES clients (id),
+            FOREIGN KEY (therapist_id) REFERENCES therapists (id),
+            FOREIGN KEY (source_session_id) REFERENCES sessions (id),
+            FOREIGN KEY (completed_session_id) REFERENCES sessions (id)
+        )
+    """)
+
     conn.commit()
     conn.close()
     print("Database initialized successfully")

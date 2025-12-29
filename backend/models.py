@@ -63,6 +63,10 @@ class SessionBase(BaseModel):
     duration_minutes: int
     status: str = "completed"  # scheduled, completed, cancelled, no-show
 
+    # Free-text notes
+    notes: Optional[str] = None  # Main session notes (free-text)
+    summary: Optional[str] = None  # Quick summary for reference
+
     # Structured data - rich text notes
     life_domains: dict = {}  # {"relationships": "detailed notes...", "career": "notes...", ...}
     emotional_themes: dict = {}  # {"anxiety": "detailed notes...", "anger": "notes...", ...}
@@ -86,6 +90,8 @@ class SessionUpdate(BaseModel):
     session_time: Optional[str] = None
     duration_minutes: Optional[int] = None
     status: Optional[str] = None
+    notes: Optional[str] = None
+    summary: Optional[str] = None
     life_domains: Optional[dict] = None
     emotional_themes: Optional[dict] = None
     interventions: Optional[list] = None
@@ -110,3 +116,34 @@ class SessionWithClient(Session):
     """Session with embedded client info for Today view"""
     first_name: str
     last_name: str
+
+
+# Todo Models
+class TodoBase(BaseModel):
+    client_id: int
+    text: str
+    status: str = "open"  # open, completed, dropped
+    source_session_id: Optional[int] = None
+    completed_session_id: Optional[int] = None
+
+
+class TodoCreate(BaseModel):
+    text: str
+    client_id: int
+    source_session_id: Optional[int] = None
+
+
+class TodoUpdate(BaseModel):
+    text: Optional[str] = None
+    status: Optional[str] = None
+    completed_session_id: Optional[int] = None
+
+
+class Todo(TodoBase):
+    id: int
+    therapist_id: int
+    created_at: str
+    updated_at: str
+
+    class Config:
+        from_attributes = True
