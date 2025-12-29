@@ -1,11 +1,17 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+from typing import List, Dict, Any
 from datetime import datetime
 import json
+import os
+from dotenv import load_dotenv
 
 from database import init_db, get_db
-from models import Client, ClientCreate, ClientUpdate, Session, SessionCreate, SessionUpdate, SessionWithClient
+from models import Client, ClientCreate, ClientUpdate, Session, SessionCreate, SessionUpdate, SessionWithClient, Therapist
+from auth import get_current_therapist
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(title="Therapy Client Management API")
 
@@ -30,29 +36,58 @@ def read_root():
     return {"message": "Therapy Client Management API"}
 
 
+# Authentication Endpoints
+@app.post("/api/auth/sync", response_model=Therapist)
+async def sync_therapist(therapist: Dict[str, Any] = Depends(get_current_therapist)):
+    """
+    Auto-create/sync therapist record on first login
+    Called automatically by frontend after Clerk authentication
+    """
+    return therapist
+
+
+@app.get("/api/auth/me", response_model=Therapist)
+async def get_current_user(therapist: Dict[str, Any] = Depends(get_current_therapist)):
+    """Return current authenticated therapist info"""
+    return therapist
+
+
+# Client Endpoints
 @app.get("/api/clients", response_model=List[Client])
-def get_clients(status: str = None):
-    """Get all clients, optionally filtered by status"""
+async def get_clients(
+    status: str = None,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Get all clients for the current therapist, optionally filtered by status"""
     with get_db() as conn:
         cursor = conn.cursor()
         if status:
             cursor.execute(
-                "SELECT * FROM clients WHERE status = ? ORDER BY last_name, first_name",
-                (status,)
+                "SELECT * FROM clients WHERE therapist_id = ? AND status = ? ORDER BY last_name, first_name",
+                (therapist['id'], status)
             )
         else:
-            cursor.execute("SELECT * FROM clients ORDER BY last_name, first_name")
+            cursor.execute(
+                "SELECT * FROM clients WHERE therapist_id = ? ORDER BY last_name, first_name",
+                (therapist['id'],)
+            )
 
         rows = cursor.fetchall()
         return [dict(row) for row in rows]
 
 
 @app.get("/api/clients/{client_id}", response_model=Client)
-def get_client(client_id: int):
-    """Get a specific client by ID"""
+async def get_client(
+    client_id: int,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Get a specific client by ID (must belong to current therapist)"""
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+        cursor.execute(
+            "SELECT * FROM clients WHERE id = ? AND therapist_id = ?",
+            (client_id, therapist['id'])
+        )
         row = cursor.fetchone()
 
         if not row:
@@ -62,15 +97,18 @@ def get_client(client_id: int):
 
 
 @app.post("/api/clients", response_model=Client, status_code=201)
-def create_client(client: ClientCreate):
-    """Create a new client"""
+async def create_client(
+    client: ClientCreate,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Create a new client for the current therapist"""
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO clients (
                 first_name, last_name, date_of_birth, phone, email,
-                emergency_contact_name, emergency_contact_phone, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                emergency_contact_name, emergency_contact_phone, status, therapist_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             client.first_name,
             client.last_name,
@@ -79,7 +117,8 @@ def create_client(client: ClientCreate):
             client.email,
             client.emergency_contact_name,
             client.emergency_contact_phone,
-            client.status
+            client.status,
+            therapist['id']
         ))
 
         client_id = cursor.lastrowid
@@ -90,13 +129,20 @@ def create_client(client: ClientCreate):
 
 
 @app.put("/api/clients/{client_id}", response_model=Client)
-def update_client(client_id: int, client: ClientUpdate):
-    """Update an existing client"""
+async def update_client(
+    client_id: int,
+    client: ClientUpdate,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Update an existing client (must belong to current therapist)"""
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # Check if client exists
-        cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+        # Check if client exists and belongs to therapist
+        cursor.execute(
+            "SELECT * FROM clients WHERE id = ? AND therapist_id = ?",
+            (client_id, therapist['id'])
+        )
         if not cursor.fetchone():
             raise HTTPException(status_code=404, detail="Client not found")
 
@@ -125,20 +171,26 @@ def update_client(client_id: int, client: ClientUpdate):
 
 
 @app.delete("/api/clients/{client_id}", status_code=204)
-def delete_client(client_id: int):
-    """Delete a client (soft delete by setting status to inactive)"""
+async def delete_client(
+    client_id: int,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Delete a client (soft delete by setting status to inactive, must belong to current therapist)"""
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # Check if client exists
-        cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+        # Check if client exists and belongs to therapist
+        cursor.execute(
+            "SELECT * FROM clients WHERE id = ? AND therapist_id = ?",
+            (client_id, therapist['id'])
+        )
         if not cursor.fetchone():
             raise HTTPException(status_code=404, detail="Client not found")
 
         # Soft delete by setting status to inactive
         cursor.execute(
-            "UPDATE clients SET status = 'inactive', updated_at = ? WHERE id = ?",
-            (datetime.now().isoformat(), client_id)
+            "UPDATE clients SET status = 'inactive', updated_at = ? WHERE id = ? AND therapist_id = ?",
+            (datetime.now().isoformat(), client_id, therapist['id'])
         )
 
         return None
@@ -171,25 +223,37 @@ def parse_session_with_client_row(row):
 
 # Session endpoints
 @app.get("/api/sessions", response_model=List[Session])
-def get_sessions(client_id: int = None):
-    """Get all sessions, optionally filtered by client_id"""
+async def get_sessions(
+    client_id: int = None,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Get all sessions for current therapist's clients, optionally filtered by client_id"""
     with get_db() as conn:
         cursor = conn.cursor()
         if client_id:
-            cursor.execute(
-                "SELECT * FROM sessions WHERE client_id = ? ORDER BY session_date DESC",
-                (client_id,)
-            )
+            # Verify client belongs to therapist and get their sessions
+            cursor.execute("""
+                SELECT s.* FROM sessions s
+                JOIN clients c ON s.client_id = c.id
+                WHERE s.client_id = ? AND c.therapist_id = ?
+                ORDER BY s.session_date DESC
+            """, (client_id, therapist['id']))
         else:
-            cursor.execute("SELECT * FROM sessions ORDER BY session_date DESC")
+            # Get all sessions for therapist's clients
+            cursor.execute("""
+                SELECT s.* FROM sessions s
+                JOIN clients c ON s.client_id = c.id
+                WHERE c.therapist_id = ?
+                ORDER BY s.session_date DESC
+            """, (therapist['id'],))
 
         rows = cursor.fetchall()
         return [parse_session_row(row) for row in rows]
 
 
 @app.get("/api/sessions/today", response_model=List[SessionWithClient])
-def get_today_sessions():
-    """Get all sessions scheduled for today across all clients"""
+async def get_today_sessions(therapist: Dict[str, Any] = Depends(get_current_therapist)):
+    """Get all sessions scheduled for today for current therapist's clients"""
     today = datetime.now().date().isoformat()
 
     with get_db() as conn:
@@ -201,23 +265,30 @@ def get_today_sessions():
                 c.last_name
             FROM sessions s
             JOIN clients c ON s.client_id = c.id
-            WHERE s.session_date = ?
+            WHERE s.session_date = ? AND c.therapist_id = ?
             ORDER BY
                 CASE WHEN s.session_time IS NULL THEN 1 ELSE 0 END,
                 s.session_time ASC,
                 s.created_at ASC
-        """, (today,))
+        """, (today, therapist['id']))
 
         rows = cursor.fetchall()
         return [parse_session_with_client_row(row) for row in rows]
 
 
 @app.get("/api/sessions/{session_id}", response_model=Session)
-def get_session(session_id: int):
-    """Get a specific session by ID"""
+async def get_session(
+    session_id: int,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Get a specific session by ID (must belong to therapist's client)"""
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM sessions WHERE id = ?", (session_id,))
+        cursor.execute("""
+            SELECT s.* FROM sessions s
+            JOIN clients c ON s.client_id = c.id
+            WHERE s.id = ? AND c.therapist_id = ?
+        """, (session_id, therapist['id']))
         row = cursor.fetchone()
 
         if not row:
@@ -227,13 +298,19 @@ def get_session(session_id: int):
 
 
 @app.post("/api/sessions", response_model=Session, status_code=201)
-def create_session(session: SessionCreate):
-    """Create a new session"""
+async def create_session(
+    session: SessionCreate,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Create a new session for therapist's client"""
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # Check if client exists
-        cursor.execute("SELECT * FROM clients WHERE id = ?", (session.client_id,))
+        # Check if client exists and belongs to therapist
+        cursor.execute(
+            "SELECT * FROM clients WHERE id = ? AND therapist_id = ?",
+            (session.client_id, therapist['id'])
+        )
         if not cursor.fetchone():
             raise HTTPException(status_code=404, detail="Client not found")
 
@@ -242,8 +319,8 @@ def create_session(session: SessionCreate):
                 client_id, session_date, session_time, duration_minutes, status,
                 life_domains, emotional_themes, interventions,
                 overall_progress, session_summary, client_insights,
-                homework_assigned, clinical_observations, risk_assessment
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                homework_assigned, clinical_observations, risk_assessment, therapist_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             session.client_id,
             session.session_date,
@@ -258,7 +335,8 @@ def create_session(session: SessionCreate):
             session.client_insights,
             session.homework_assigned,
             session.clinical_observations,
-            session.risk_assessment
+            session.risk_assessment,
+            therapist['id']
         ))
 
         session_id = cursor.lastrowid
@@ -269,13 +347,21 @@ def create_session(session: SessionCreate):
 
 
 @app.put("/api/sessions/{session_id}", response_model=Session)
-def update_session(session_id: int, session: SessionUpdate):
-    """Update an existing session"""
+async def update_session(
+    session_id: int,
+    session: SessionUpdate,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Update an existing session (must belong to therapist's client)"""
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # Check if session exists
-        cursor.execute("SELECT * FROM sessions WHERE id = ?", (session_id,))
+        # Check if session exists and belongs to therapist
+        cursor.execute("""
+            SELECT s.* FROM sessions s
+            JOIN clients c ON s.client_id = c.id
+            WHERE s.id = ? AND c.therapist_id = ?
+        """, (session_id, therapist['id']))
         if not cursor.fetchone():
             raise HTTPException(status_code=404, detail="Session not found")
 
@@ -308,13 +394,20 @@ def update_session(session_id: int, session: SessionUpdate):
 
 
 @app.delete("/api/sessions/{session_id}", status_code=204)
-def delete_session(session_id: int):
-    """Delete a session"""
+async def delete_session(
+    session_id: int,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Delete a session (must belong to therapist's client)"""
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # Check if session exists
-        cursor.execute("SELECT * FROM sessions WHERE id = ?", (session_id,))
+        # Check if session exists and belongs to therapist
+        cursor.execute("""
+            SELECT s.* FROM sessions s
+            JOIN clients c ON s.client_id = c.id
+            WHERE s.id = ? AND c.therapist_id = ?
+        """, (session_id, therapist['id']))
         if not cursor.fetchone():
             raise HTTPException(status_code=404, detail="Session not found")
 
@@ -324,13 +417,19 @@ def delete_session(session_id: int):
 
 
 @app.post("/api/sessions/schedule", response_model=Session, status_code=201)
-def schedule_session(session: SessionCreate):
-    """Quick schedule endpoint for creating appointment slots with minimal data"""
+async def schedule_session(
+    session: SessionCreate,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Quick schedule endpoint for creating appointment slots for therapist's client"""
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # Check if client exists
-        cursor.execute("SELECT * FROM clients WHERE id = ?", (session.client_id,))
+        # Check if client exists and belongs to therapist
+        cursor.execute(
+            "SELECT * FROM clients WHERE id = ? AND therapist_id = ?",
+            (session.client_id, therapist['id'])
+        )
         if not cursor.fetchone():
             raise HTTPException(status_code=404, detail="Client not found")
 
@@ -339,8 +438,8 @@ def schedule_session(session: SessionCreate):
                 client_id, session_date, session_time, duration_minutes, status,
                 life_domains, emotional_themes, interventions,
                 overall_progress, session_summary, client_insights,
-                homework_assigned, clinical_observations, risk_assessment
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                homework_assigned, clinical_observations, risk_assessment, therapist_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             session.client_id,
             session.session_date,
@@ -355,7 +454,8 @@ def schedule_session(session: SessionCreate):
             session.client_insights,
             session.homework_assigned,
             session.clinical_observations,
-            session.risk_assessment
+            session.risk_assessment,
+            therapist['id']
         ))
 
         session_id = cursor.lastrowid
@@ -366,13 +466,20 @@ def schedule_session(session: SessionCreate):
 
 
 @app.patch("/api/sessions/{session_id}/cancel", response_model=Session)
-def cancel_session(session_id: int):
-    """Mark a session as cancelled. Keeps record for history."""
+async def cancel_session(
+    session_id: int,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """Mark a session as cancelled (must belong to therapist's client). Keeps record for history."""
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # Check if session exists
-        cursor.execute("SELECT * FROM sessions WHERE id = ?", (session_id,))
+        # Check if session exists and belongs to therapist
+        cursor.execute("""
+            SELECT s.* FROM sessions s
+            JOIN clients c ON s.client_id = c.id
+            WHERE s.id = ? AND c.therapist_id = ?
+        """, (session_id, therapist['id']))
         if not cursor.fetchone():
             raise HTTPException(status_code=404, detail="Session not found")
 

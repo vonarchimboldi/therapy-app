@@ -29,13 +29,14 @@
   --color-stable: #f59e0b;
   --color-declining: #ef4444;
 
-  /* Spacing System */
+  /* Spacing System - Tufte-inspired generous spacing */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
   --space-md: 1rem;
   --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --space-2xl: 3rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
 
   /* Border Radius */
   --radius-sm: 6px;
@@ -257,32 +258,35 @@ body {
 }
 
 /* ============================================
-   HEADER
+   HEADER - Full width with generous spacing
    ============================================ */
 
 .app-header {
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-xl) var(--space-3xl);
   transition: background var(--transition-normal) ease, border-color var(--transition-normal) ease;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-content h1 {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  margin-bottom: var(--space-xs);
-  letter-spacing: -0.02em;
+  margin-bottom: var(--space-sm);
+  letter-spacing: -0.03em;
   transition: color var(--transition-normal) ease;
 }
 
 .tagline {
   color: var(--color-text-secondary);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
   transition: color var(--transition-normal) ease;
 }
 
@@ -313,24 +317,25 @@ body {
   line-height: 1;
 }
 
-/* Navigation Tabs */
+/* Navigation Tabs - Tufte-inspired minimal design */
 .app-nav {
   display: flex;
-  gap: var(--space-sm);
-  margin-top: var(--space-lg);
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
 }
 
 .nav-tab {
   background: transparent;
   border: none;
   color: var(--color-text-secondary);
-  padding: var(--space-sm) var(--space-lg);
+  padding: var(--space-md) var(--space-xl);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   position: relative;
+  letter-spacing: 0.01em;
 }
 
 .nav-tab:hover {
@@ -341,19 +346,20 @@ body {
 .nav-tab.active {
   color: var(--color-accent);
   background: var(--color-accent-light);
+  font-weight: 600;
 }
 
 /* ============================================
-   LAYOUT
+   LAYOUT - Generous spacing for readability
    ============================================ */
 
 .app-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: var(--space-xl);
-  padding: var(--space-xl);
+  grid-template-columns: 320px 1fr;
+  gap: var(--space-3xl);
+  padding: var(--space-3xl);
   flex: 1;
-  max-width: 1600px;
+  max-width: 1800px;
   margin: 0 auto;
   width: 100%;
 }
@@ -553,19 +559,19 @@ body {
   background: var(--color-accent);
   border: none;
   color: white;
-  padding: var(--space-sm) var(--space-lg);
+  padding: var(--space-md) var(--space-xl);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  box-shadow: none;
+  letter-spacing: 0.01em;
 }
 
 .btn-primary:hover {
   background: var(--color-accent-hover);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ============================================
@@ -574,11 +580,12 @@ body {
 
 .badge {
   display: inline-block;
-  padding: var(--space-xs) var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   border-radius: 100px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 500;
   text-transform: capitalize;
+  letter-spacing: 0.01em;
 }
 
 .badge-scheduled {
@@ -631,8 +638,8 @@ body {
    ============================================ */
 
 .today-container {
-  padding: var(--space-xl);
-  max-width: 1200px;
+  padding: var(--space-3xl);
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -640,41 +647,41 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-2xl);
+  margin-bottom: var(--space-3xl);
 }
 
 .today-header h2 {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 600;
   color: var(--color-text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
-/* Today Session Cards */
+/* Today Session Cards - Generous spacing */
 .today-sessions-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-xl);
 }
 
 .today-session-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-left-width: 4px;
+  border-left-width: 3px;
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
+  padding: var(--space-xl);
   display: flex;
   flex-direction: row;
-  gap: var(--space-lg);
+  gap: var(--space-2xl);
   align-items: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   box-shadow: var(--shadow-sm);
 }
 
 .today-session-card:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  border-color: var(--color-accent);
 }
 
 .today-session-card.status-scheduled {
@@ -697,28 +704,30 @@ body {
 .session-time-block {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 120px;
+  gap: var(--space-sm);
+  min-width: 140px;
   flex-shrink: 0;
 }
 
 .time-display {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.0625rem;
+  font-weight: 500;
   color: var(--color-text-primary);
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 .duration {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
+  font-weight: 400;
 }
 
 .session-client-info {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 150px;
+  gap: var(--space-sm);
+  min-width: 180px;
   flex-shrink: 0;
 }
 
@@ -727,6 +736,7 @@ body {
   font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .session-preview {
@@ -1783,5 +1793,291 @@ body {
 
   .sessions-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   CLERK AUTHENTICATION STYLING
+   Tufte-inspired clean, centered layout
+   ============================================ */
+
+/* Override Clerk's default styles for better centering and spacing */
+.cl-rootBox {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cl-card {
+  box-shadow: var(--shadow-lg) !important;
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--color-border) !important;
+  padding: var(--space-2xl) !important;
+  width: 100%;
+  max-width: 420px;
+}
+
+.cl-headerTitle {
+  font-size: 1.75rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--color-text-primary) !important;
+}
+
+.cl-headerSubtitle {
+  color: var(--color-text-secondary) !important;
+  font-size: 0.9375rem !important;
+  margin-top: var(--space-md) !important;
+}
+
+.cl-formFieldInput {
+  padding: var(--space-md) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--color-border) !important;
+  font-size: 0.9375rem !important;
+}
+
+.cl-formButtonPrimary {
+  background: var(--color-accent) !important;
+  padding: var(--space-md) !important;
+  border-radius: var(--radius-md) !important;
+  font-weight: 600 !important;
+  font-size: 0.9375rem !important;
+}
+
+.cl-formButtonPrimary:hover {
+  background: var(--color-accent-hover) !important;
+}
+
+.cl-footerActionLink {
+  color: var(--color-accent) !important;
+  font-weight: 500 !important;
+}
+
+/* Spacing improvements */
+.cl-formFieldRow + .cl-formFieldRow {
+  margin-top: var(--space-lg) !important;
+}
+
+.cl-footer {
+  margin-top: var(--space-xl) !important;
+}
+
+/* ============================================
+   LANDING PAGE - Clean, informative design
+   ============================================ */
+
+.landing-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.landing-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-xl) var(--space-3xl);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.landing-header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.landing-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.landing-header-actions {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.landing-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hero Section */
+.landing-hero {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--space-xl);
+  text-align: center;
+}
+
+.landing-title {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xl);
+  line-height: 1.2;
+}
+
+.landing-subtitle {
+  font-size: 1.25rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-3xl);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing-cta {
+  display: flex;
+  gap: var(--space-lg);
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-large {
+  padding: var(--space-lg) var(--space-2xl);
+  font-size: 1.0625rem;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  letter-spacing: 0.01em;
+}
+
+.btn-secondary:hover {
+  background: var(--color-border-light);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Features Section */
+.landing-features {
+  background: var(--color-surface);
+  padding: var(--space-3xl) var(--space-xl);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.feature-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-2xl);
+}
+
+.feature-card {
+  text-align: left;
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-lg);
+  line-height: 1;
+}
+
+.feature-card h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-md);
+  letter-spacing: -0.01em;
+}
+
+.feature-card p {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* Bottom CTA */
+.landing-cta-bottom {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--space-xl);
+  text-align: center;
+}
+
+.landing-cta-bottom h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-lg);
+}
+
+.landing-cta-bottom p {
+  font-size: 1.125rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2xl);
+}
+
+/* Footer */
+.landing-footer {
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-2xl) var(--space-xl);
+  text-align: center;
+}
+
+.landing-footer p {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .landing-title {
+    font-size: 2rem;
+  }
+
+  .landing-subtitle {
+    font-size: 1rem;
+  }
+
+  .landing-cta {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .landing-cta .btn-large,
+  .landing-cta .btn-primary,
+  .landing-cta .btn-secondary {
+    width: 100%;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-header {
+    padding: var(--space-lg) var(--space-xl);
+  }
+
+  .landing-header-actions {
+    flex-direction: column;
+    gap: var(--space-sm);
   }
 }

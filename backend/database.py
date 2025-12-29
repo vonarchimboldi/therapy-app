@@ -10,6 +10,19 @@ def init_db():
     conn = sqlite3.connect(DATABASE_URL)
     cursor = conn.cursor()
 
+    # Create therapists table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS therapists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            clerk_user_id TEXT NOT NULL UNIQUE,
+            email TEXT NOT NULL,
+            first_name TEXT,
+            last_name TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS clients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,6 +76,22 @@ def init_db():
     if 'status' not in columns:
         cursor.execute("ALTER TABLE sessions ADD COLUMN status TEXT NOT NULL DEFAULT 'completed'")
         print("Added status column to sessions table")
+
+    # Migration: Add therapist_id foreign key to clients table
+    cursor.execute("PRAGMA table_info(clients)")
+    client_columns = [column[1] for column in cursor.fetchall()]
+
+    if 'therapist_id' not in client_columns:
+        cursor.execute("ALTER TABLE clients ADD COLUMN therapist_id INTEGER REFERENCES therapists(id)")
+        print("Added therapist_id column to clients table")
+
+    # Migration: Add therapist_id foreign key to sessions table
+    cursor.execute("PRAGMA table_info(sessions)")
+    session_columns = [column[1] for column in cursor.fetchall()]
+
+    if 'therapist_id' not in session_columns:
+        cursor.execute("ALTER TABLE sessions ADD COLUMN therapist_id INTEGER REFERENCES therapists(id)")
+        print("Added therapist_id column to sessions table")
 
     conn.commit()
     conn.close()

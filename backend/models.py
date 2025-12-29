@@ -3,6 +3,24 @@ from typing import Optional
 from datetime import date, datetime
 
 
+# Therapist Models
+class TherapistBase(BaseModel):
+    clerk_user_id: str
+    email: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+
+
+class Therapist(TherapistBase):
+    id: int
+    created_at: str
+    updated_at: str
+
+    class Config:
+        from_attributes = True
+
+
+# Client Models
 class ClientBase(BaseModel):
     first_name: str
     last_name: str
