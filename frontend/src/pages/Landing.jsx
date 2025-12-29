@@ -40,39 +40,39 @@ export default function Landing() {
         <section className="landing-features">
           <div className="feature-grid">
             <div className="feature-card">
-              <div className="feature-icon">📅</div>
-              <h3>Today's Schedule</h3>
-              <p>See all appointments for the day in one view. Schedule sessions, mark them complete or cancelled.</p>
+              <div className="feature-icon">🎥</div>
+              <h3>Video Sessions</h3>
+              <p>Conduct therapy sessions directly in the app with built-in video calls.</p>
             </div>
 
             <div className="feature-card">
-              <div className="feature-icon">📝</div>
-              <h3>Structured Session Notes</h3>
-              <p>Document life domains discussed, emotional themes present, interventions used, and clinical observations.</p>
+              <div className="feature-icon">✍️</div>
+              <h3>Auto-Transcription</h3>
+              <p>Sessions are automatically transcribed so you can focus on your client, not note-taking.</p>
             </div>
 
             <div className="feature-card">
-              <div className="feature-icon">📊</div>
-              <h3>Progress Tracking</h3>
-              <p>Track overall progress (improving/stable/declining) and view analytics on patterns across sessions.</p>
+              <div className="feature-icon">🔍</div>
+              <h3>AI-Powered Search</h3>
+              <p>Search across all your session notes using natural language. Find patterns and themes across clients.</p>
+            </div>
+
+            <div className="feature-card">
+              <div className="feature-icon">✅</div>
+              <h3>Session To-Dos</h3>
+              <p>Track follow-ups between sessions. To-dos carry forward automatically until resolved.</p>
             </div>
 
             <div className="feature-card">
               <div className="feature-icon">👤</div>
               <h3>Client Management</h3>
-              <p>Maintain client profiles with contact info, emergency contacts, session history, and status tracking.</p>
+              <p>Maintain client profiles with contact info, session history, and progress tracking.</p>
             </div>
 
             <div className="feature-card">
               <div className="feature-icon">🔒</div>
-              <h3>Private & Isolated</h3>
-              <p>Each therapist account is completely isolated. Your clients and notes are yours alone.</p>
-            </div>
-
-            <div className="feature-card">
-              <div className="feature-icon">🌿</div>
-              <h3>Clean Interface</h3>
-              <p>Minimal, focused design that's easy on the eyes. Dark mode available for late sessions.</p>
+              <h3>Private & Secure</h3>
+              <p>Your data is encrypted and isolated. HIPAA-conscious design.</p>
             </div>
           </div>
         </section>
