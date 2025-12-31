@@ -18,7 +18,7 @@ export default function Landing() {
     <div className="landing-page">
       <header className="landing-header">
         <div className="landing-header-content">
-          <h1 className="landing-logo">TherapyTrack</h1>
+          <h1 className="landing-logo">Pier88</h1>
           <div className="landing-header-actions">
             <Link to="/sign-in" className="btn-secondary">Sign In</Link>
             <Link to="/sign-up" className="btn-primary">Sign Up</Link>
@@ -28,12 +28,21 @@ export default function Landing() {
 
       <main className="landing-main">
         <section className="landing-hero">
-          <h2 className="landing-title">Simple Clinical Session Notes<br />for Therapists</h2>
-          <p className="landing-subtitle">
-            An organized way of tracking your clients and sessions.
-          </p>
-          <div className="landing-cta">
-            <Link to="/sign-up" className="btn-primary btn-large">Create Account</Link>
+          <div className="landing-hero-content">
+            <h2 className="landing-title">Client Management<br />for Solo Practitioners</h2>
+            <p className="landing-subtitle">
+              Track your clients, sessions, and progress in one organized place. Built for therapists, trainers, tutors, and freelancers who value simplicity and security.
+            </p>
+            <div className="landing-cta">
+              <Link to="/sign-up" className="btn-primary btn-large">Get Started</Link>
+            </div>
+          </div>
+
+          <div className="landing-hero-image">
+            <img
+              src="/images/hero-journal.png"
+              alt="Leather therapy journal on cream linen with plant"
+            />
           </div>
         </section>
 
@@ -42,7 +51,7 @@ export default function Landing() {
             <div className="feature-card">
               <div className="feature-icon">🎥</div>
               <h3>Video Sessions</h3>
-              <p>Conduct therapy sessions directly in the app with built-in video calls.</p>
+              <p>Conduct client sessions directly in the app with built-in video calls.</p>
             </div>
 
             <div className="feature-card">
@@ -79,7 +88,7 @@ export default function Landing() {
       </main>
 
       <footer className="landing-footer">
-        <p>TherapyTrack &copy; 2025 · Designed for mental health professionals</p>
+        <p>Pier88 &copy; 2025 · Designed for solo practitioners</p>
       </footer>
     </div>
   )
