@@ -1,7 +1,450 @@
-# TherapyTrack Development Log
+# Pier88 Development Log
 
 ## Session Summary
-This document captures the complete development of the TherapyTrack application - a web app for therapists to manage clients, schedule sessions, and track clinical notes. Updates are listed in reverse chronological order (most recent first).
+This document captures the complete development of Pier88 (formerly TherapyTrack) - a client management platform for solo practitioners including therapists, trainers, tutors, and freelancers. Updates are listed in reverse chronological order (most recent first).
+
+---
+
+## Phase 10: Rebranding to Pier88 & Production Deployment (December 31, 2024)
+
+### Strategic Pivot: From TherapyTrack to Pier88
+
+**Motivation:**
+Expand from therapy-only to a multi-track platform for all types of solo practitioners:
+- Therapists
+- Personal trainers
+- Tutors
+- Freelancers
+
+**Brand Strategy:**
+- **Umbrella Brand:** Pier88 (pier88.io)
+- **Track System:** Each profession gets their own "track" (TherapyTrack, TrainerTrack, TutorTrack, etc.)
+- **Positioning:** "Client Management for Solo Practitioners"
+- **Domain:** pier88.io (purchased via Cloudflare)
+
+### Major Changes
+
+#### 1. Complete Rebrand from TherapyTrack to Pier88
+
+**Landing Page Updates (frontend/src/pages/Landing.jsx):**
+
+**Before:**
+```jsx
+<h1 className="landing-logo">TherapyTrack</h1>
+<h2 className="landing-title">Simple Clinical Session Notes<br />for Therapists</h2>
+<p className="landing-subtitle">
+  An organized way of tracking your clients and sessions...
+</p>
+<footer>TherapyTrack © 2025 · Designed for mental health professionals</footer>
+```
+
+**After:**
+```jsx
+<h1 className="landing-logo">Pier88</h1>
+<h2 className="landing-title">Client Management<br />for Solo Practitioners</h2>
+<p className="landing-subtitle">
+  Track your clients, sessions, and progress in one organized place.
+  Built for therapists, trainers, tutors, and freelancers who value simplicity and security.
+</p>
+<footer>Pier88 © 2025 · Designed for solo practitioners</footer>
+```
+
+**Feature Cards Updated:**
+- Video Sessions: "therapy sessions" → "client sessions"
+- All other features kept profession-agnostic
+
+#### 2. Production Deployment to Vercel
+
+**Setup Steps Completed:**
+
+1. **Vercel Configuration File Created (frontend/vercel.json):**
+```json
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+- Ensures proper SPA routing (all routes serve index.html)
+
+2. **Environment Variables Configured:**
+```bash
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_***
+VITE_API_URL=http://localhost:8000/api
+```
+- Added to Vercel production environment
+- Required for Clerk authentication to work
+
+3. **Vercel CLI Deployment:**
+```bash
+vercel login  # Authenticated via browser
+vercel --prod --yes  # Deployed to production
+```
+
+4. **Domain Configuration:**
+- Domain: pier88.io
+- Registrar: Cloudflare
+- DNS: A record pointing to Vercel (76.76.21.21)
+- SSL: Handled by Vercel automatically
+- Status: ✅ Live and working
+
+**Production URLs:**
+- Primary: https://pier88.io
+- Vercel default: https://frontend-two-ruddy-66.vercel.app
+
+#### 3. Google Fonts Integration
+
+**HTML Updates (frontend/index.html):**
+
+**Added to `<head>`:**
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+<title>Pier88 - Client Management for Solo Practitioners</title>
+```
+
+**Typography System:**
+- **Body:** Inter (400, 500, 600, 700)
+- **Headings:** Playfair Display (600, 700)
+- **Style:** Warm editorial aesthetic (terracotta + cream + serif)
+
+#### 4. DNS & SSL Configuration
+
+**Initial Issue: Cloudflare SSL Error (525)**
+- Problem: SSL handshake failed between Cloudflare and Vercel
+- Cause: Cloudflare proxy (orange cloud) with incorrect SSL mode
+- Solution: Changed DNS to "DNS only" (gray cloud) mode
+- Result: Direct connection to Vercel's SSL, no proxy
+
+**DNS Configuration:**
+```
+Type: A
+Name: @ (pier88.io)
+IPv4: 76.76.21.21 (Vercel)
+Proxy: DNS only (gray cloud)
+TTL: Auto
+```
+
+#### 5. Deployment Debugging
+
+**Issue 1: Page showing only "frontend" text**
+- Problem: React app not loading, only HTML title visible
+- Root Cause: Missing environment variables (Clerk key)
+- Fix: Added VITE_CLERK_PUBLISHABLE_KEY to Vercel
+- Redeployed to apply env vars
+
+**Issue 2: Build passing but app not rendering**
+- Problem: Environment variables not applied to existing deployment
+- Fix: Redeploy after adding env vars (`vercel --prod --yes`)
+- Result: React app renders properly with authentication
+
+#### 6. Editorial Aesthetic Refinements
+
+**Design Philosophy:**
+- Warm, premium, magazine-inspired
+- Terracotta accent color (#b8845c)
+- Cream background (#f5f1eb)
+- Serif headlines (Playfair Display)
+- Generous whitespace
+- Subtle shadows and borders
+
+**Color Palette (CSS Variables in App.css):**
+```css
+:root {
+  --color-bg: #f5f1eb;           /* Warm cream */
+  --color-border: #e8e4df;        /* Warm gray */
+  --color-accent: #b8845c;        /* Terracotta */
+  --color-text-primary: #1a1a1a;  /* Soft black */
+  --color-text-secondary: #6b6b6b; /* Medium gray */
+}
+```
+
+**Typography Hierarchy:**
+```css
+.landing-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 3.5rem;
+  line-height: 1.1;  /* Tight editorial spacing */
+  letter-spacing: -0.02em;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+```
+
+**Layout:**
+- Two-column hero grid (55% text / 45% image)
+- Vertical centering with CSS Grid
+- 100px padding top/bottom for breathing room
+- 80px gap between columns
+
+#### 7. Hero Image Integration
+
+**Image Setup:**
+- File: `/public/images/hero-journal.png` (2.1MB)
+- Subject: Leather therapy journal on cream linen with plant
+- Styling: 8px border-radius, subtle shadow
+- Alt text: "Leather therapy journal on cream linen with plant"
+
+**CSS:**
+```css
+.landing-hero-image {
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+```
+
+### Technical Decisions & Rationale
+
+#### Why Vercel vs Other Hosts?
+- **Pros:** Zero-config for Vite/React, automatic SSL, global CDN, great DX
+- **Cons:** Cold starts on free tier (not an issue for frontend)
+- **Decision:** Vercel for optimal React/Vite performance
+
+#### Why Cloudflare for Domain?
+- **Pros:** Cheapest registrar (at-cost pricing), good DNS, built-in DDoS protection
+- **Cons:** Less hand-holding than GoDaddy/Namecheap
+- **Decision:** Cloudflare for cost and performance
+
+#### Why Direct DNS vs Cloudflare Proxy?
+- **Initial:** Used Cloudflare proxy (orange cloud) for DDoS protection
+- **Issue:** SSL handshake errors (525), extra complexity
+- **Decision:** DNS only mode (gray cloud) for simplicity
+- **Trade-off:** Lost Cloudflare caching/DDoS, gained simplicity and Vercel's edge network
+
+#### Why Environment Variables in Vercel vs .env files?
+- **Security:** Keeps secrets out of git repository
+- **Flexibility:** Different values for preview vs production
+- **Convention:** Standard practice for Vercel/Netlify deployments
+
+### Files Changed
+
+**Frontend:**
+1. `frontend/src/pages/Landing.jsx` - Rebrand to Pier88, update copy
+2. `frontend/index.html` - Add Google Fonts, update title
+3. `frontend/vercel.json` - NEW - SPA routing configuration
+4. `frontend/public/images/hero-journal.png` - NEW - Hero image (2.1MB)
+
+**Build & Deploy:**
+5. Vercel project created via CLI
+6. Environment variables added via Vercel CLI
+7. Domain connected via `vercel domains add pier88.io`
+
+**Git:**
+8. Committed changes: "Update branding to Pier88 and add Google Fonts"
+
+### Deployment Workflow
+
+**Local Development:**
+```bash
+cd frontend
+npm run dev  # Runs on http://localhost:5173
+```
+
+**Production Deployment:**
+```bash
+cd frontend
+vercel login  # One-time authentication
+vercel --prod --yes  # Deploy to production
+```
+
+**Environment Variables:**
+```bash
+# Add new env var
+echo "value" | vercel env add VAR_NAME production
+
+# List all env vars
+vercel env ls
+
+# Pull env vars locally (creates .env.local)
+vercel env pull
+```
+
+**Domain Management:**
+```bash
+# Add domain to project
+vercel domains add pier88.io
+
+# List all domains
+vercel domains ls
+
+# Inspect domain config
+vercel domains inspect pier88.io
+```
+
+### Testing Completed
+
+**Deployment:**
+- ✅ Build passes locally (`npm run build`)
+- ✅ Build passes on Vercel
+- ✅ Production deployment succeeds
+- ✅ Environment variables applied correctly
+- ✅ Domain DNS configured properly
+- ✅ SSL certificate active and valid
+- ✅ SPA routing works (no 404s on refresh)
+
+**Branding:**
+- ✅ Logo shows "Pier88"
+- ✅ Headline updated for broader audience
+- ✅ Subtitle mentions all practitioner types
+- ✅ Footer shows "Designed for solo practitioners"
+- ✅ Feature cards profession-agnostic
+
+**Visual:**
+- ✅ Google Fonts loading (Inter + Playfair Display)
+- ✅ Hero image displays correctly
+- ✅ Typography hierarchy clear
+- ✅ Colors match warm editorial palette
+- ✅ Layout responsive on mobile
+- ✅ Buttons styled correctly (terracotta fill)
+
+**Authentication:**
+- ✅ Clerk authentication works in production
+- ✅ Sign-in redirects to dashboard
+- ✅ Protected routes work correctly
+- ✅ JWT tokens verified by backend
+
+### Known Issues Resolved
+
+1. **SSL Error 525:**
+   - Initial: Cloudflare proxy causing SSL handshake failure
+   - Fix: Changed to DNS only mode (gray cloud)
+   - Result: Direct Vercel SSL, works perfectly
+
+2. **React App Not Rendering:**
+   - Initial: Page showing only "frontend" text
+   - Cause: Missing VITE_CLERK_PUBLISHABLE_KEY
+   - Fix: Added env var, redeployed
+   - Result: Full React app renders
+
+3. **Environment Variables Not Applied:**
+   - Initial: Added env vars but no change
+   - Cause: Existing deployment didn't have new vars
+   - Fix: Redeploy with `vercel --prod --yes`
+   - Result: New deployment uses env vars
+
+### Cost Impact
+
+**Domain:**
+- pier88.io via Cloudflare: ~$10/year
+
+**Hosting:**
+- Vercel Free Tier: $0/month
+  - Unlimited deployments
+  - 100 GB bandwidth
+  - Automatic SSL
+  - Global CDN
+
+**Future Costs (if needed):**
+- Vercel Pro: $20/month (more bandwidth, better analytics)
+
+### Future Enhancements for Multi-Track Platform
+
+**Phase 1: Therapy Track (Current)**
+- ✅ Core features built for therapists
+- Landing page mentions multiple practitioner types
+- Backend schema ready for expansion
+
+**Phase 2: Track System Implementation**
+- Add `track` field to therapist table (enum: therapy, training, tutoring, freelance)
+- Track-specific terminology:
+  - Therapy: "clients", "sessions"
+  - Training: "clients", "workouts"
+  - Tutoring: "students", "lessons"
+  - Freelance: "clients", "projects"
+- Track-specific feature flags
+
+**Phase 3: Track-Specific Onboarding**
+- Landing page: "Choose your track" dropdown
+- Sign-up flow: select practitioner type
+- Dashboard customization based on track
+
+**Phase 4: Separate Track Domains (Optional)**
+- therapytrack.pier88.io
+- trainertrack.pier88.io
+- tutortrack.pier88.io
+- freelancetrack.pier88.io
+
+**Phase 5: Practice Features**
+- Multiple practitioners in one organization
+- Shared client databases
+- Team scheduling
+- Revenue sharing/analytics
+
+### Architecture Evolution
+
+**Before (TherapyTrack):**
+```
+Single Product → Therapists Only → therapytrack.com
+```
+
+**After (Pier88):**
+```
+Platform → Multiple Tracks → pier88.io
+├── TherapyTrack (therapists)
+├── TrainerTrack (personal trainers)
+├── TutorTrack (tutors)
+└── FreelanceTrack (freelancers)
+```
+
+### Production Status
+
+**Live URLs:**
+- **Primary:** https://pier88.io ✅
+- **Fallback:** https://frontend-two-ruddy-66.vercel.app ✅
+
+**Backend:**
+- Currently: localhost:8000 (development)
+- Next: Deploy to Render/Railway with production env vars
+- Database: Migrate from SQLite to PostgreSQL
+
+**Authentication:**
+- Clerk: Production keys configured ✅
+- CORS: Updated for pier88.io
+- JWT: Verified and working
+
+**Next Steps for Full Production:**
+1. Deploy backend to production (Render/Railway)
+2. Update VITE_API_URL to production backend
+3. Configure production database (PostgreSQL)
+4. Run database migrations in production
+5. Set up monitoring (Sentry, Vercel Analytics)
+6. Enable Vercel Analytics for traffic insights
+7. Configure proper error pages (404, 500)
+
+### Key Learnings
+
+1. **Strategic Positioning:**
+   - Expanding from niche (therapy) to broader market (all solo practitioners) requires minimal code changes
+   - Most valuable change is messaging and branding, not technical architecture
+
+2. **Vercel Deployment:**
+   - Environment variables must be added BEFORE or require redeployment
+   - Vercel's automatic SSL "just works" when DNS is configured properly
+
+3. **Cloudflare DNS:**
+   - "DNS only" mode simpler than proxy for most apps
+   - Vercel's edge network already provides CDN benefits
+
+4. **Editorial Design:**
+   - Serif fonts + warm colors + generous whitespace = premium feel
+   - Design system with CSS variables makes rebranding trivial
+
+5. **Multi-Tenant Ready:**
+   - Existing therapist-based architecture easily extends to practitioner-based
+   - Track field would enable profession-specific customization
+   - Core features (clients, sessions, notes) universal across tracks
 
 ---
 
