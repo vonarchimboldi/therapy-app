@@ -1417,6 +1417,98 @@ h4, h5, h6 {
   font-weight: 500;
 }
 
+/* Practice Type Modal */
+.practice-type-modal {
+  max-width: 600px;
+}
+
+.practice-type-modal h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-md);
+  letter-spacing: -0.02em;
+}
+
+.practice-type-intro {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2xl);
+  line-height: 1.6;
+}
+
+.practice-type-options {
+  display: grid;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-2xl);
+}
+
+.practice-type-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--color-surface);
+}
+
+.practice-type-option:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.practice-type-option.selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  box-shadow: 0 0 0 3px rgba(201, 149, 108, 0.1);
+}
+
+.practice-type-option input[type="radio"] {
+  margin-top: 0.25rem;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-accent);
+}
+
+.practice-type-content h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.practice-type-content p {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.practice-type-note {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-lg);
+  font-style: italic;
+}
+
+.error-message {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-left: 4px solid #c33;
+  color: #c33;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
 /* ============================================
    FORMS
    ============================================ */

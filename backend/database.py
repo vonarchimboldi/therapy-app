@@ -102,6 +102,14 @@ def init_db():
         cursor.execute("ALTER TABLE sessions ADD COLUMN summary TEXT")
         print("Added summary column to sessions table")
 
+    # Migration: Add practice_type to therapists table
+    cursor.execute("PRAGMA table_info(therapists)")
+    therapist_columns = [column[1] for column in cursor.fetchall()]
+
+    if 'practice_type' not in therapist_columns:
+        cursor.execute("ALTER TABLE therapists ADD COLUMN practice_type TEXT")
+        print("Added practice_type column to therapists table")
+
     # Create todos table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS todos (

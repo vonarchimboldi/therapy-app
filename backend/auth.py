@@ -138,16 +138,18 @@ async def get_current_therapist(clerk_user_id: str = Depends(verify_token)) -> D
             return dict(row)
 
         # Therapist doesn't exist, create new record
-        # In a real app, you'd fetch user details from Clerk API here
-        # For now, we'll create a minimal record
+        # Note: practice_type will be NULL initially and set via:
+        # 1. Clerk sign-up form (new users) - synced via PATCH endpoint
+        # 2. Migration modal (existing users) - updated via PATCH endpoint
         cursor.execute("""
-            INSERT INTO therapists (clerk_user_id, email, first_name, last_name)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO therapists (clerk_user_id, email, first_name, last_name, practice_type)
+            VALUES (?, ?, ?, ?, ?)
         """, (
             clerk_user_id,
             f"{clerk_user_id}@clerk.temp",  # Placeholder email
             "New",  # Placeholder first name
-            "Therapist"  # Placeholder last name
+            "Therapist",  # Placeholder last name
+            None  # practice_type starts as NULL
         ))
 
         # Get the newly created record

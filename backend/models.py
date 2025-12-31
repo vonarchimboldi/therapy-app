@@ -9,6 +9,11 @@ class TherapistBase(BaseModel):
     email: str
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    practice_type: Optional[str] = None  # therapy, training, tutoring, freelance
+
+
+class TherapistUpdate(BaseModel):
+    practice_type: Optional[str] = None
 
 
 class Therapist(TherapistBase):

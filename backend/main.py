@@ -10,7 +10,7 @@ from database import init_db, get_db
 from models import (
     Client, ClientCreate, ClientUpdate,
     Session, SessionCreate, SessionUpdate, SessionWithClient,
-    Therapist,
+    Therapist, TherapistUpdate,
     Todo, TodoCreate, TodoUpdate
 )
 from auth import get_current_therapist
@@ -55,6 +55,35 @@ async def sync_therapist(therapist: Dict[str, Any] = Depends(get_current_therapi
 async def get_current_user(therapist: Dict[str, Any] = Depends(get_current_therapist)):
     """Return current authenticated therapist info"""
     return therapist
+
+
+@app.patch("/api/therapist/practice-type", response_model=Therapist)
+async def update_practice_type(
+    update_data: TherapistUpdate,
+    therapist: Dict[str, Any] = Depends(get_current_therapist)
+):
+    """
+    Update the practice type for the current therapist
+    Used during onboarding or when user changes their practice type
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        # Update practice_type
+        cursor.execute("""
+            UPDATE therapists
+            SET practice_type = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (update_data.practice_type, therapist['id']))
+
+        # Fetch and return updated record
+        cursor.execute("SELECT * FROM therapists WHERE id = ?", (therapist['id'],))
+        updated_therapist = cursor.fetchone()
+
+        if not updated_therapist:
+            raise HTTPException(status_code=404, detail="Therapist not found")
+
+        return dict(updated_therapist)
 
 
 # Client Endpoints

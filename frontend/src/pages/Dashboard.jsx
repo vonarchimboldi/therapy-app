@@ -1,24 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useAuth, UserButton } from '@clerk/clerk-react'
+import { useAuth, useUser, UserButton } from '@clerk/clerk-react'
+import { getTrackConfig } from '../config/tracks'
+import PracticeTypeModal from '../components/PracticeTypeModal'
 import '../App.css'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-
-const LIFE_DOMAINS = [
-  'relationships', 'career', 'self_esteem', 'family',
-  'physical_health', 'financial', 'substance_use', 'trauma'
-]
-
-const EMOTIONAL_THEMES = [
-  'anxiety', 'depression', 'anger', 'shame',
-  'guilt', 'grief', 'fear', 'loneliness', 'joy'
-]
-
-const INTERVENTIONS = [
-  'CBT', 'DBT', 'Mindfulness', 'Exposure Therapy', 'EMDR',
-  'Psychoeducation', 'Behavioral Activation', 'Cognitive Restructuring',
-  'Grounding Techniques', 'Relaxation Exercises'
-]
 
 // Loading Skeleton Components
 const TodaySessionSkeleton = () => (
@@ -67,7 +53,15 @@ const SessionCardSkeleton = () => (
 )
 
 function Dashboard() {
-  const { getToken } = useAuth()
+  const { isSignedIn, getToken } = useAuth()
+  const { user } = useUser()
+
+  // Track configuration based on practice type
+  const [practiceType, setPracticeType] = useState(null)
+  const trackConfig = getTrackConfig(practiceType)
+
+  // Migration modal state (for existing users without practice_type)
+  const [showPracticeTypeModal, setShowPracticeTypeModal] = useState(false)
 
   // Dark mode state
   const [theme, setTheme] = useState(() => {
@@ -146,13 +140,34 @@ function Dashboard() {
   useEffect(() => {
     const initializeUser = async () => {
       try {
+        if (!isSignedIn || !user) return
+
         const token = await getToken()
-        // Sync therapist record
-        await fetch(`${API_BASE}/auth/sync`, {
+
+        // Sync therapist record and get practice_type
+        const syncResponse = await fetch(`${API_BASE}/auth/sync`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
         })
-        // Then load data
+
+        if (!syncResponse.ok) {
+          throw new Error('Failed to sync user')
+        }
+
+        const therapistData = await syncResponse.json()
+        console.log('Therapist data:', therapistData)
+
+        // Set practice type from backend
+        if (therapistData.practice_type) {
+          setPracticeType(therapistData.practice_type)
+        } else {
+          // Show migration modal if no practice type
+          setShowPracticeTypeModal(true)
+          setLoading(false)
+          return
+        }
+
+        // Load dashboard data
         fetchClients()
         if (appView === 'today') {
           fetchTodaySessions()
@@ -161,10 +176,11 @@ function Dashboard() {
         }
       } catch (err) {
         setError(err.message)
+        setLoading(false)
       }
     }
     initializeUser()
-  }, [])
+  }, [isSignedIn, user])
 
   useEffect(() => {
     if (selectedClient) {
@@ -447,7 +463,7 @@ function Dashboard() {
   }
 
   const handleCancelSession = async (sessionId) => {
-    if (!confirm('Cancel this session? It will be marked as cancelled.')) return
+    if (!confirm(`Cancel this ${trackConfig.sessionTerm.toLowerCase()}? It will be marked as cancelled.`)) return
 
     try {
       const token = await getToken()
@@ -570,12 +586,24 @@ function Dashboard() {
   if (loading) return <div className="container loading">Loading...</div>
 
   return (
-    <div className="app">
-      <header className="app-header">
+    <>
+      {/* Migration Modal for existing users without practice_type */}
+      {showPracticeTypeModal && (
+        <PracticeTypeModal
+          onComplete={() => {
+            setShowPracticeTypeModal(false)
+            // Reload the page to fetch data with new track config
+            window.location.reload()
+          }}
+        />
+      )}
+
+      <div className="app">
+        <header className="app-header">
         <div>
           <div className="header-content">
-            <h1>TherapyTrack</h1>
-            <p className="tagline">Clinical Session Management</p>
+            <h1>Pier88</h1>
+            <p className="tagline">{trackConfig.label} Dashboard</p>
           </div>
           <div className="app-nav">
             <button
@@ -594,7 +622,7 @@ function Dashboard() {
             className={`nav-tab ${appView === 'clients' ? 'active' : ''}`}
             onClick={() => setAppView('clients')}
           >
-            Clients
+            {trackConfig.clientTermPlural}
           </button>
         </div>
         </div>
@@ -624,8 +652,8 @@ function Dashboard() {
           ) : todaySessions.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">📅</div>
-              <h3>No sessions scheduled for today</h3>
-              <p>Click "Schedule Appointment" to add a new session</p>
+              <h3>No {trackConfig.sessionTermPlural.toLowerCase()} scheduled for today</h3>
+              <p>Click "Schedule Appointment" to add a new {trackConfig.sessionTerm.toLowerCase()}</p>
             </div>
           ) : (
             <div className="today-sessions-list">
@@ -700,7 +728,7 @@ function Dashboard() {
             <div className="empty-state">
               <div className="empty-icon">📅</div>
               <h3>No scheduled appointments</h3>
-              <p>Click "Schedule Appointment" to add a new session</p>
+              <p>Click "Schedule Appointment" to add a new {trackConfig.sessionTerm.toLowerCase()}</p>
             </div>
           ) : (
             <div className="scheduled-list">
@@ -759,23 +787,23 @@ function Dashboard() {
             onClick={() => setShowClientForm(!showClientForm)}
           >
             <span className="btn-icon">+</span>
-            {showClientForm ? 'Cancel' : 'New Client'}
+            {showClientForm ? 'Cancel' : `New ${trackConfig.clientTerm}`}
           </button>
 
           {showClientForm && (
             <form className="client-form" onSubmit={handleClientSubmit}>
-              <h3>Add Client</h3>
+              <h3>Add {trackConfig.clientTerm}</h3>
               <input type="text" name="first_name" placeholder="First Name *" value={clientFormData.first_name} onChange={(e) => setClientFormData({...clientFormData, first_name: e.target.value})} required />
               <input type="text" name="last_name" placeholder="Last Name *" value={clientFormData.last_name} onChange={(e) => setClientFormData({...clientFormData, last_name: e.target.value})} required />
               <input type="date" name="date_of_birth" placeholder="Date of Birth *" value={clientFormData.date_of_birth} onChange={(e) => setClientFormData({...clientFormData, date_of_birth: e.target.value})} required />
               <input type="tel" name="phone" placeholder="Phone" value={clientFormData.phone} onChange={(e) => setClientFormData({...clientFormData, phone: e.target.value})} />
               <input type="email" name="email" placeholder="Email" value={clientFormData.email} onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})} />
-              <button type="submit" className="btn-submit">Create Client</button>
+              <button type="submit" className="btn-submit">Create {trackConfig.clientTerm}</button>
             </form>
           )}
 
           <div className="client-list-container">
-            <h3 className="sidebar-title">Clients ({clients.length})</h3>
+            <h3 className="sidebar-title">{trackConfig.clientTermPlural} ({clients.length})</h3>
             {loading ? (
               <div className="client-list">
                 <ClientCardSkeleton />
@@ -784,7 +812,7 @@ function Dashboard() {
                 <ClientCardSkeleton />
               </div>
             ) : clients.length === 0 ? (
-              <p className="empty-text">No clients yet</p>
+              <p className="empty-text">No {trackConfig.clientTermPlural.toLowerCase()} yet</p>
             ) : (
               <div className="client-list">
                 {clients.map(client => (
@@ -809,8 +837,8 @@ function Dashboard() {
           {!selectedClient ? (
             <div className="empty-state">
               <div className="empty-icon">📊</div>
-              <h2>Welcome to TherapyTrack</h2>
-              <p>Select a client from the sidebar to view sessions and insights</p>
+              <h2>Welcome to Pier88</h2>
+              <p>Select a {trackConfig.clientTerm.toLowerCase()} from the sidebar to view {trackConfig.sessionTermPlural.toLowerCase()} and insights</p>
             </div>
           ) : (
             <>
@@ -836,7 +864,7 @@ function Dashboard() {
                     className={`btn-tab ${clientView === 'sessions' ? 'active' : ''}`}
                     onClick={() => setClientView('sessions')}
                   >
-                    Sessions ({sessions.length})
+                    {trackConfig.sessionTermPlural} ({sessions.length})
                   </button>
                   <button
                     className={`btn-tab ${clientView === 'analytics' ? 'active' : ''}`}
@@ -864,7 +892,7 @@ function Dashboard() {
                   <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                     <form className="session-form" onSubmit={handleSessionSubmit}>
                       <div className="modal-header">
-                        <h3>New Session</h3>
+                        <h3>New {trackConfig.sessionTerm}</h3>
                         <button type="button" className="btn-close" onClick={() => setShowSessionForm(false)}>×</button>
                       </div>
 
@@ -897,8 +925,8 @@ function Dashboard() {
 
                       {/* Session Notes Section */}
                       <div className="form-section">
-                        <h4>Session Notes</h4>
-                        <p className="section-hint">Free-text notes from this session</p>
+                        <h4>{trackConfig.sessionTerm} Notes</h4>
+                        <p className="section-hint">Free-text notes from this {trackConfig.sessionTerm.toLowerCase()}</p>
                         <textarea
                           name="notes"
                           value={sessionFormData.notes}
@@ -981,34 +1009,34 @@ function Dashboard() {
                       )}
 
                       <div className="form-section">
-                        <h4>Life Domains Discussed</h4>
-                        <p className="section-hint">Check the domains that came up in this session and add detailed notes</p>
-                        {LIFE_DOMAINS.map(domain => (
-                          <div key={domain} className="domain-field">
+                        <h4>{trackConfig.domainLabel}</h4>
+                        <p className="section-hint">Check the areas that came up in this {trackConfig.sessionTerm.toLowerCase()} and add detailed notes</p>
+                        {trackConfig.domains.map(domain => (
+                          <div key={domain.value} className="domain-field">
                             <label className="domain-checkbox">
                               <input
                                 type="checkbox"
-                                checked={sessionFormData.life_domains[domain] !== undefined && sessionFormData.life_domains[domain] !== ''}
+                                checked={sessionFormData.life_domains[domain.value] !== undefined && sessionFormData.life_domains[domain.value] !== ''}
                                 onChange={(e) => {
                                   const newDomains = {...sessionFormData.life_domains}
                                   if (e.target.checked) {
-                                    newDomains[domain] = ''
+                                    newDomains[domain.value] = ''
                                   } else {
-                                    delete newDomains[domain]
+                                    delete newDomains[domain.value]
                                   }
                                   setSessionFormData({...sessionFormData, life_domains: newDomains})
                                 }}
                               />
-                              <span className="domain-label">{formatLabel(domain)}</span>
+                              <span className="domain-label">{domain.label}</span>
                             </label>
-                            {(sessionFormData.life_domains[domain] !== undefined && sessionFormData.life_domains[domain] !== null) && (
+                            {(sessionFormData.life_domains[domain.value] !== undefined && sessionFormData.life_domains[domain.value] !== null) && (
                               <textarea
-                                value={sessionFormData.life_domains[domain] || ''}
+                                value={sessionFormData.life_domains[domain.value] || ''}
                                 onChange={(e) => setSessionFormData({
                                   ...sessionFormData,
-                                  life_domains: {...sessionFormData.life_domains, [domain]: e.target.value}
+                                  life_domains: {...sessionFormData.life_domains, [domain.value]: e.target.value}
                                 })}
-                                placeholder={`What was discussed about ${formatLabel(domain).toLowerCase()}?`}
+                                placeholder={`What was discussed about ${domain.label.toLowerCase()}?`}
                                 rows="3"
                               />
                             )}
@@ -1017,34 +1045,34 @@ function Dashboard() {
                       </div>
 
                       <div className="form-section">
-                        <h4>Emotional Themes Present</h4>
-                        <p className="section-hint">Check the emotions that were present and describe them</p>
-                        {EMOTIONAL_THEMES.map(emotion => (
-                          <div key={emotion} className="domain-field">
+                        <h4>{trackConfig.themesLabel}</h4>
+                        <p className="section-hint">Check the themes that were present and describe them</p>
+                        {trackConfig.themes.map(theme => (
+                          <div key={theme.value} className="domain-field">
                             <label className="domain-checkbox">
                               <input
                                 type="checkbox"
-                                checked={sessionFormData.emotional_themes[emotion] !== undefined && sessionFormData.emotional_themes[emotion] !== ''}
+                                checked={sessionFormData.emotional_themes[theme.value] !== undefined && sessionFormData.emotional_themes[theme.value] !== ''}
                                 onChange={(e) => {
                                   const newThemes = {...sessionFormData.emotional_themes}
                                   if (e.target.checked) {
-                                    newThemes[emotion] = ''
+                                    newThemes[theme.value] = ''
                                   } else {
-                                    delete newThemes[emotion]
+                                    delete newThemes[theme.value]
                                   }
                                   setSessionFormData({...sessionFormData, emotional_themes: newThemes})
                                 }}
                               />
-                              <span className="domain-label">{formatLabel(emotion)}</span>
+                              <span className="domain-label">{theme.label}</span>
                             </label>
-                            {(sessionFormData.emotional_themes[emotion] !== undefined && sessionFormData.emotional_themes[emotion] !== null) && (
+                            {(sessionFormData.emotional_themes[theme.value] !== undefined && sessionFormData.emotional_themes[theme.value] !== null) && (
                               <textarea
-                                value={sessionFormData.emotional_themes[emotion] || ''}
+                                value={sessionFormData.emotional_themes[theme.value] || ''}
                                 onChange={(e) => setSessionFormData({
                                   ...sessionFormData,
-                                  emotional_themes: {...sessionFormData.emotional_themes, [emotion]: e.target.value}
+                                  emotional_themes: {...sessionFormData.emotional_themes, [theme.value]: e.target.value}
                                 })}
-                                placeholder={`Describe the ${formatLabel(emotion).toLowerCase()} that was present...`}
+                                placeholder={`Describe the ${theme.label.toLowerCase()} that was present...`}
                                 rows="3"
                               />
                             )}
@@ -1053,18 +1081,18 @@ function Dashboard() {
                       </div>
 
                       <div className="form-section">
-                        <h4>Interventions</h4>
+                        <h4>{trackConfig.interventionsLabel}</h4>
                         <div className="checkbox-grid">
-                          {INTERVENTIONS.map(intervention => (
-                            <label key={intervention} className="checkbox-field">
-                              <input type="checkbox" checked={sessionFormData.interventions.includes(intervention)} onChange={() => {
+                          {trackConfig.interventions.map(intervention => (
+                            <label key={intervention.value} className="checkbox-field">
+                              <input type="checkbox" checked={sessionFormData.interventions.includes(intervention.value)} onChange={() => {
                                 const current = sessionFormData.interventions
                                 setSessionFormData({
                                   ...sessionFormData,
-                                  interventions: current.includes(intervention) ? current.filter(i => i !== intervention) : [...current, intervention]
+                                  interventions: current.includes(intervention.value) ? current.filter(i => i !== intervention.value) : [...current, intervention.value]
                                 })
                               }} />
-                              <span>{intervention}</span>
+                              <span>{intervention.label}</span>
                             </label>
                           ))}
                         </div>
@@ -1116,7 +1144,7 @@ function Dashboard() {
                   {sessionPrep && (
                     <div className="session-prep-card">
                       <div className="prep-header">
-                        <h3>Prepare for Session</h3>
+                        <h3>Prepare for {trackConfig.sessionTerm}</h3>
                         <button
                           className="btn-primary"
                           onClick={() => {
@@ -1130,7 +1158,7 @@ function Dashboard() {
                             setShowSessionForm(true)
                           }}
                         >
-                          Start Session
+                          Start {trackConfig.sessionTerm}
                         </button>
                       </div>
 
@@ -1138,7 +1166,7 @@ function Dashboard() {
                         {/* Last Session */}
                         {sessionPrep.last_session && (
                           <div className="prep-section">
-                            <h4>Last Session</h4>
+                            <h4>Last {trackConfig.sessionTerm}</h4>
                             <div className="last-session-summary">
                               <div className="session-date">
                                 {new Date(sessionPrep.last_session.session_date).toLocaleDateString('en-US', {
@@ -1199,12 +1227,12 @@ function Dashboard() {
                         {/* Quick Stats */}
                         <div className="prep-section prep-stats">
                           <div className="prep-stat">
-                            <div className="stat-label">Total Sessions</div>
+                            <div className="stat-label">Total {trackConfig.sessionTermPlural}</div>
                             <div className="stat-value">{sessionPrep.stats.total_sessions}</div>
                           </div>
                           {sessionPrep.stats.days_as_client !== null && (
                             <div className="prep-stat">
-                              <div className="stat-label">Client Since</div>
+                              <div className="stat-label">{trackConfig.clientTerm} Since</div>
                               <div className="stat-value">
                                 {Math.floor(sessionPrep.stats.days_as_client / 365) > 0
                                   ? `${Math.floor(sessionPrep.stats.days_as_client / 365)}y`
@@ -1216,7 +1244,7 @@ function Dashboard() {
                           )}
                           {sessionPrep.stats.last_session_date && (
                             <div className="prep-stat">
-                              <div className="stat-label">Last Session</div>
+                              <div className="stat-label">Last {trackConfig.sessionTerm}</div>
                               <div className="stat-value">
                                 {new Date(sessionPrep.stats.last_session_date).toLocaleDateString('en-US', {
                                   month: 'short',
@@ -1231,7 +1259,7 @@ function Dashboard() {
                   )}
 
                   <div className="summary-card">
-                    <h3>Client Information</h3>
+                    <h3>{trackConfig.clientTerm} Information</h3>
                     <div className="summary-details">
                       <div className="detail-row">
                         <span className="detail-label">Full Name:</span>
@@ -1264,11 +1292,11 @@ function Dashboard() {
                   </div>
 
                   <div className="summary-card">
-                    <h3>Session Overview</h3>
+                    <h3>{trackConfig.sessionTerm} Overview</h3>
                     <div className="overview-stats">
                       <div className="overview-stat">
                         <div className="stat-number">{sessions.length}</div>
-                        <div className="stat-text">Total Sessions</div>
+                        <div className="stat-text">Total {trackConfig.sessionTermPlural}</div>
                       </div>
                       <div className="overview-stat">
                         <div className="stat-number">{sessions.filter(s => s.status === 'scheduled').length}</div>
@@ -1283,7 +1311,7 @@ function Dashboard() {
 
                   {sessions.length > 0 && (
                     <div className="summary-card">
-                      <h3>Recent Sessions</h3>
+                      <h3>Recent {trackConfig.sessionTermPlural}</h3>
                       <div className="recent-sessions-list">
                         {sessions.slice(0, 5).map(session => (
                           <div key={session.id} className="recent-session-item" onClick={() => openSession(session)}>
@@ -1304,7 +1332,7 @@ function Dashboard() {
                 <div className="dashboard">
                   <div className="stats-grid">
                     <div className="stat-card">
-                      <div className="stat-label">Total Sessions</div>
+                      <div className="stat-label">Total {trackConfig.sessionTermPlural}</div>
                       <div className="stat-value">{analytics.totalSessions}</div>
                     </div>
                     <div className="stat-card improving">
@@ -1323,7 +1351,7 @@ function Dashboard() {
 
                   <div className="charts-grid">
                     <div className="chart-card">
-                      <h3>Most Discussed Emotional Themes</h3>
+                      <h3>Most Discussed {trackConfig.themesLabel}</h3>
                       <div className="bar-chart">
                         {Object.entries(analytics.emotionCounts)
                           .sort((a, b) => b[1] - a[1])
@@ -1333,7 +1361,7 @@ function Dashboard() {
                               <span className="bar-label">{formatLabel(emotion)}</span>
                               <div className="bar-container">
                                 <div className="bar-fill emotion" style={{width: `${(count / analytics.totalSessions) * 100}%`}}></div>
-                                <span className="bar-value">{count} session{count !== 1 ? 's' : ''}</span>
+                                <span className="bar-value">{count} {count !== 1 ? trackConfig.sessionTermPlural.toLowerCase() : trackConfig.sessionTerm.toLowerCase()}</span>
                               </div>
                             </div>
                           ))}
@@ -1341,7 +1369,7 @@ function Dashboard() {
                     </div>
 
                     <div className="chart-card">
-                      <h3>Most Discussed Life Domains</h3>
+                      <h3>Most Discussed {trackConfig.domainLabel}</h3>
                       <div className="bar-chart">
                         {Object.entries(analytics.domainCounts)
                           .sort((a, b) => b[1] - a[1])
@@ -1351,7 +1379,7 @@ function Dashboard() {
                               <span className="bar-label">{formatLabel(domain)}</span>
                               <div className="bar-container">
                                 <div className="bar-fill domain" style={{width: `${(count / analytics.totalSessions) * 100}%`}}></div>
-                                <span className="bar-value">{count} session{count !== 1 ? 's' : ''}</span>
+                                <span className="bar-value">{count} {count !== 1 ? trackConfig.sessionTermPlural.toLowerCase() : trackConfig.sessionTerm.toLowerCase()}</span>
                               </div>
                             </div>
                           ))}
@@ -1359,7 +1387,7 @@ function Dashboard() {
                     </div>
 
                     <div className="chart-card">
-                      <h3>Most Used Interventions</h3>
+                      <h3>Most Used {trackConfig.interventionsLabel}</h3>
                       <div className="bar-chart">
                         {Object.entries(analytics.interventionCounts)
                           .sort((a, b) => b[1] - a[1])
@@ -1369,7 +1397,7 @@ function Dashboard() {
                               <span className="bar-label">{intervention}</span>
                               <div className="bar-container">
                                 <div className="bar-fill intervention" style={{width: `${(count / analytics.totalSessions) * 100}%`}}></div>
-                                <span className="bar-value">{count} session{count !== 1 ? 's' : ''}</span>
+                                <span className="bar-value">{count} {count !== 1 ? trackConfig.sessionTermPlural.toLowerCase() : trackConfig.sessionTerm.toLowerCase()}</span>
                               </div>
                             </div>
                           ))}
@@ -1389,7 +1417,7 @@ function Dashboard() {
                     </div>
                   ) : sessions.length === 0 ? (
                     <div className="empty-state-small">
-                      <p>No sessions yet. Click "Schedule Appointment" to get started.</p>
+                      <p>No {trackConfig.sessionTermPlural.toLowerCase()} yet. Click "Schedule Appointment" to get started.</p>
                     </div>
                   ) : (
                     <div className="sessions-grid">
@@ -1481,7 +1509,7 @@ function Dashboard() {
             {!editMode ? (
               <div className="session-view">
                 <div className="modal-header">
-                  <h3>Session Details</h3>
+                  <h3>{trackConfig.sessionTerm} Details</h3>
                   <div style={{display: 'flex', gap: '0.5rem'}}>
                     <button className="btn-edit" onClick={() => setEditMode(true)}>
                       {viewingSession.status === 'scheduled' ? 'Add Notes' : 'Edit'}
@@ -1492,7 +1520,7 @@ function Dashboard() {
 
                 {viewingSession.status === 'scheduled' && (
                   <div className="scheduled-notice">
-                    📅 This is a scheduled appointment. Click "Add Notes" to document the session after it's completed.
+                    📅 This is a scheduled appointment. Click "Add Notes" to document the {trackConfig.sessionTerm.toLowerCase()} after it's completed.
                   </div>
                 )}
 
@@ -1530,14 +1558,14 @@ function Dashboard() {
 
                   {viewingSession.notes && (
                     <div className="view-section">
-                      <strong>Session Notes</strong>
+                      <strong>{trackConfig.sessionTerm} Notes</strong>
                       <p style={{whiteSpace: 'pre-wrap'}}>{viewingSession.notes}</p>
                     </div>
                   )}
 
                   {Object.keys(viewingSession.life_domains || {}).filter(k => viewingSession.life_domains[k] && viewingSession.life_domains[k].trim()).length > 0 && (
                     <div className="view-section">
-                      <strong>Life Domains</strong>
+                      <strong>{trackConfig.domainLabel}</strong>
                       {Object.entries(viewingSession.life_domains)
                         .filter(([_, v]) => v && typeof v === 'string' && v.trim())
                         .map(([k, v]) => (
@@ -1551,7 +1579,7 @@ function Dashboard() {
 
                   {Object.keys(viewingSession.emotional_themes || {}).filter(k => viewingSession.emotional_themes[k] && viewingSession.emotional_themes[k].trim()).length > 0 && (
                     <div className="view-section">
-                      <strong>Emotional Themes</strong>
+                      <strong>{trackConfig.themesLabel}</strong>
                       {Object.entries(viewingSession.emotional_themes)
                         .filter(([_, v]) => v && typeof v === 'string' && v.trim())
                         .map(([k, v]) => (
@@ -1565,7 +1593,7 @@ function Dashboard() {
 
                   {viewingSession.interventions && viewingSession.interventions.length > 0 && (
                     <div className="view-section">
-                      <strong>Interventions Used</strong>
+                      <strong>{trackConfig.interventionsLabel}</strong>
                       <div className="tags">
                         {viewingSession.interventions.map(int => (
                           <span key={int} className="tag tag-intervention">{int}</span>
@@ -1613,7 +1641,7 @@ function Dashboard() {
             ) : (
               <form className="session-form" onSubmit={handleSessionUpdate}>
                 <div className="modal-header">
-                  <h3>Edit Session</h3>
+                  <h3>Edit {trackConfig.sessionTerm}</h3>
                   <button type="button" className="btn-close" onClick={closeSession}>×</button>
                 </div>
 
@@ -1645,8 +1673,8 @@ function Dashboard() {
                 </div>
 
                 <div className="form-section">
-                  <h4>Session Notes</h4>
-                  <p className="section-hint">Free-text notes from this session</p>
+                  <h4>{trackConfig.sessionTerm} Notes</h4>
+                  <p className="section-hint">Free-text notes from this {trackConfig.sessionTerm.toLowerCase()}</p>
                   <textarea
                     name="notes"
                     value={sessionFormData.notes}
@@ -1668,34 +1696,34 @@ function Dashboard() {
                 </div>
 
                 <div className="form-section">
-                  <h4>Life Domains Discussed</h4>
-                  <p className="section-hint">Check the domains that came up in this session and add detailed notes</p>
-                  {LIFE_DOMAINS.map(domain => (
-                    <div key={domain} className="domain-field">
+                  <h4>{trackConfig.domainLabel}</h4>
+                  <p className="section-hint">Check the areas that came up in this {trackConfig.sessionTerm.toLowerCase()} and add detailed notes</p>
+                  {trackConfig.domains.map(domain => (
+                    <div key={domain.value} className="domain-field">
                       <label className="domain-checkbox">
                         <input
                           type="checkbox"
-                          checked={sessionFormData.life_domains[domain] !== undefined && sessionFormData.life_domains[domain] !== ''}
+                          checked={sessionFormData.life_domains[domain.value] !== undefined && sessionFormData.life_domains[domain.value] !== ''}
                           onChange={(e) => {
                             const newDomains = {...sessionFormData.life_domains}
                             if (e.target.checked) {
-                              newDomains[domain] = ''
+                              newDomains[domain.value] = ''
                             } else {
-                              delete newDomains[domain]
+                              delete newDomains[domain.value]
                             }
                             setSessionFormData({...sessionFormData, life_domains: newDomains})
                           }}
                         />
-                        <span className="domain-label">{formatLabel(domain)}</span>
+                        <span className="domain-label">{domain.label}</span>
                       </label>
-                      {(sessionFormData.life_domains[domain] !== undefined && sessionFormData.life_domains[domain] !== null) && (
+                      {(sessionFormData.life_domains[domain.value] !== undefined && sessionFormData.life_domains[domain.value] !== null) && (
                         <textarea
-                          value={sessionFormData.life_domains[domain] || ''}
+                          value={sessionFormData.life_domains[domain.value] || ''}
                           onChange={(e) => setSessionFormData({
                             ...sessionFormData,
-                            life_domains: {...sessionFormData.life_domains, [domain]: e.target.value}
+                            life_domains: {...sessionFormData.life_domains, [domain.value]: e.target.value}
                           })}
-                          placeholder={`What was discussed about ${formatLabel(domain).toLowerCase()}?`}
+                          placeholder={`What was discussed about ${domain.label.toLowerCase()}?`}
                           rows="3"
                         />
                       )}
@@ -1704,34 +1732,34 @@ function Dashboard() {
                 </div>
 
                 <div className="form-section">
-                  <h4>Emotional Themes Present</h4>
-                  <p className="section-hint">Check the emotions that were present and describe them</p>
-                  {EMOTIONAL_THEMES.map(emotion => (
-                    <div key={emotion} className="domain-field">
+                  <h4>{trackConfig.themesLabel}</h4>
+                  <p className="section-hint">Check the themes that were present and describe them</p>
+                  {trackConfig.themes.map(theme => (
+                    <div key={theme.value} className="domain-field">
                       <label className="domain-checkbox">
                         <input
                           type="checkbox"
-                          checked={sessionFormData.emotional_themes[emotion] !== undefined && sessionFormData.emotional_themes[emotion] !== ''}
+                          checked={sessionFormData.emotional_themes[theme.value] !== undefined && sessionFormData.emotional_themes[theme.value] !== ''}
                           onChange={(e) => {
                             const newThemes = {...sessionFormData.emotional_themes}
                             if (e.target.checked) {
-                              newThemes[emotion] = ''
+                              newThemes[theme.value] = ''
                             } else {
-                              delete newThemes[emotion]
+                              delete newThemes[theme.value]
                             }
                             setSessionFormData({...sessionFormData, emotional_themes: newThemes})
                           }}
                         />
-                        <span className="domain-label">{formatLabel(emotion)}</span>
+                        <span className="domain-label">{theme.label}</span>
                       </label>
-                      {(sessionFormData.emotional_themes[emotion] !== undefined && sessionFormData.emotional_themes[emotion] !== null) && (
+                      {(sessionFormData.emotional_themes[theme.value] !== undefined && sessionFormData.emotional_themes[theme.value] !== null) && (
                         <textarea
-                          value={sessionFormData.emotional_themes[emotion] || ''}
+                          value={sessionFormData.emotional_themes[theme.value] || ''}
                           onChange={(e) => setSessionFormData({
                             ...sessionFormData,
-                            emotional_themes: {...sessionFormData.emotional_themes, [emotion]: e.target.value}
+                            emotional_themes: {...sessionFormData.emotional_themes, [theme.value]: e.target.value}
                           })}
-                          placeholder={`Describe the ${formatLabel(emotion).toLowerCase()} that was present...`}
+                          placeholder={`Describe the ${theme.label.toLowerCase()} that was present...`}
                           rows="3"
                         />
                       )}
@@ -1740,18 +1768,18 @@ function Dashboard() {
                 </div>
 
                 <div className="form-section">
-                  <h4>Interventions</h4>
+                  <h4>{trackConfig.interventionsLabel}</h4>
                   <div className="checkbox-grid">
-                    {INTERVENTIONS.map(intervention => (
-                      <label key={intervention} className="checkbox-field">
-                        <input type="checkbox" checked={sessionFormData.interventions.includes(intervention)} onChange={() => {
+                    {trackConfig.interventions.map(intervention => (
+                      <label key={intervention.value} className="checkbox-field">
+                        <input type="checkbox" checked={sessionFormData.interventions.includes(intervention.value)} onChange={() => {
                           const current = sessionFormData.interventions
                           setSessionFormData({
                             ...sessionFormData,
-                            interventions: current.includes(intervention) ? current.filter(i => i !== intervention) : [...current, intervention]
+                            interventions: current.includes(intervention.value) ? current.filter(i => i !== intervention.value) : [...current, intervention.value]
                           })
                         }} />
-                        <span>{intervention}</span>
+                        <span>{intervention.label}</span>
                       </label>
                     ))}
                   </div>
@@ -1812,14 +1840,14 @@ function Dashboard() {
               </div>
 
               <div className="form-field">
-                <label>Client *</label>
+                <label>{trackConfig.clientTerm} *</label>
                 <select
                   value={scheduleFormData.client_id}
                   onChange={(e) => setScheduleFormData({...scheduleFormData, client_id: e.target.value})}
                   required
                   disabled={selectedClient && appView === 'clients'}
                 >
-                  <option value="">Select client...</option>
+                  <option value="">Select {trackConfig.clientTerm.toLowerCase()}...</option>
                   {clients.map(c => (
                     <option key={c.id} value={c.id}>
                       {c.first_name} {c.last_name}
@@ -1873,6 +1901,7 @@ function Dashboard() {
         </div>
       )}
     </div>
+    </>
   )
 }
 
