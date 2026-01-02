@@ -1,0 +1,107 @@
+/* Intervention Row */
+
+.intervention-row {
+  display: flex;
+  gap: 1rem;
+  background-color: white;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease;
+}
+
+.intervention-row:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.confidence-bar {
+  width: 4px;
+  flex-shrink: 0;
+}
+
+.confidence-bar.high {
+  background-color: #84cc16;
+}
+
+.confidence-bar.medium {
+  background-color: #fbbf24;
+}
+
+.confidence-bar.uncertain {
+  background-color: #d6d3ce;
+}
+
+.intervention-content {
+  flex: 1;
+  padding: 1rem;
+  padding-left: 0;
+}
+
+.intervention-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.intervention-type {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #292524;
+  margin: 0;
+}
+
+.rejected-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  font-weight: 500;
+}
+
+.intervention-evidence {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #57534e;
+  margin: 0.5rem 0;
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.confirm-button {
+  padding: 0.375rem 0.875rem;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.confirm-button.yes {
+  background-color: white;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.confirm-button.yes:hover {
+  background-color: #f0fdf4;
+  border-color: #4ade80;
+}
+
+.confirm-button.no {
+  background-color: white;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.confirm-button.no:hover {
+  background-color: #fef2f2;
+  border-color: #f87171;
+}

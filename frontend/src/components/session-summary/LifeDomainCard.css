@@ -1,0 +1,94 @@
+/* Life Domain Card */
+
+.domain-card {
+  background-color: white;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.domain-card:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.domain-card.primary {
+  border-color: #d97706;
+  background-color: #fffbeb;
+}
+
+.domain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.domain-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #292524;
+  margin: 0;
+}
+
+.primary-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  background-color: #fed7aa;
+  color: #78350f;
+}
+
+.domain-notes {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #57534e;
+  margin: 0.75rem 0;
+  min-height: 3rem;
+}
+
+.domain-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f5f5f1;
+}
+
+.mention-count {
+  font-size: 0.8rem;
+  color: #a8a29e;
+}
+
+.domain-actions {
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.domain-card:hover .domain-actions {
+  opacity: 1;
+}
+
+.toggle-primary-button,
+.domain-card .remove-button {
+  background: none;
+  border: none;
+  color: #a8a29e;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.15s ease;
+}
+
+.toggle-primary-button:hover {
+  color: #d97706;
+}
+
+.domain-card .remove-button:hover {
+  color: #dc2626;
+}

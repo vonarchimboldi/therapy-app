@@ -1,0 +1,468 @@
+/* Homework Form */
+.homework-form {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid #e5e5e0;
+}
+
+.homework-form h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #292524;
+}
+
+.form-field {
+  margin-bottom: 1.25rem;
+}
+
+.form-field label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #292524;
+  margin-bottom: 0.5rem;
+}
+
+.form-field input[type="text"],
+.form-field input[type="date"],
+.form-field textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+}
+
+.form-field textarea {
+  resize: vertical;
+}
+
+.btn-attach {
+  padding: 0.75rem 1.25rem;
+  background-color: #fafaf8;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-attach:hover:not(:disabled) {
+  background-color: #f5f5f1;
+  border-color: #d6d3ce;
+}
+
+.btn-attach:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.attachments-list {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #fafaf8;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.5rem;
+}
+
+.attachment-icon {
+  font-size: 1.125rem;
+}
+
+.attachment-name {
+  flex: 1;
+  font-size: 0.875rem;
+  color: #292524;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-remove {
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border: none;
+  color: #a8a29e;
+  font-size: 1.25rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.btn-remove:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f5f5f1;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.btn-primary {
+  background-color: #d97706;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #b45309;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  background-color: #d6d3ce;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: #57534e;
+  border: 1px solid #e5e5e0;
+}
+
+.btn-secondary:hover {
+  background-color: #fafaf8;
+}
+
+/* Homework List */
+.homework-loading,
+.no-homework {
+  padding: 3rem;
+  text-align: center;
+  color: #78716c;
+}
+
+.homework-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.homework-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e5e0;
+  overflow: hidden;
+  transition: all 0.15s ease;
+}
+
+.homework-card:hover {
+  border-color: #d6d3ce;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.homework-header {
+  padding: 1.25rem;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+
+.homework-header:hover {
+  background-color: #fafaf8;
+}
+
+.homework-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.homework-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #292524;
+  flex: 1;
+}
+
+.status-badge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.status-assigned {
+  background-color: #eff6ff;
+  color: #1e40af;
+}
+
+.status-submitted {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+
+.status-reviewed {
+  background-color: #f0fdf4;
+  color: #15803d;
+}
+
+.status-completed {
+  background-color: #f5f5f1;
+  color: #57534e;
+}
+
+.homework-meta {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: #78716c;
+}
+
+.due-date {
+  font-weight: 500;
+}
+
+.due-date.overdue {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.expand-icon {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  color: #a8a29e;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease;
+}
+
+.expand-icon:hover {
+  background-color: #f5f5f1;
+  color: #292524;
+}
+
+/* Homework Details */
+.homework-details {
+  padding: 1.5rem;
+  background-color: #fafaf8;
+  border-top: 1px solid #e5e5e0;
+}
+
+.instructions-section,
+.attachments-section,
+.submission-section,
+.no-submission {
+  margin-bottom: 1.5rem;
+}
+
+.instructions-section:last-child,
+.attachments-section:last-child,
+.submission-section:last-child,
+.no-submission:last-child {
+  margin-bottom: 0;
+}
+
+.homework-details h5,
+.homework-details h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #292524;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.75rem 0;
+}
+
+.homework-details h6 {
+  font-size: 0.8rem;
+  margin-top: 1rem;
+}
+
+.instructions-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #292524;
+  white-space: pre-wrap;
+}
+
+.attachments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.attachment-link {
+  display: block;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+
+.attachment-link:hover {
+  transform: translateY(-2px);
+}
+
+.attachment-thumbnail {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e5e0;
+}
+
+.attachment-link.file {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: white;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.5rem;
+  color: #292524;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.attachment-link.file .file-icon {
+  font-size: 1.25rem;
+}
+
+/* Submission */
+.submission-content {
+  background-color: white;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #e5e5e0;
+}
+
+.submission-date {
+  font-size: 0.875rem;
+  color: #78716c;
+  margin: 0 0 0.75rem 0;
+}
+
+.submission-text {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #292524;
+  white-space: pre-wrap;
+}
+
+.feedback-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f5f5f1;
+}
+
+.feedback-text {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #292524;
+  white-space: pre-wrap;
+}
+
+.feedback-date {
+  font-size: 0.8rem;
+  color: #78716c;
+  margin: 0.5rem 0 0 0;
+}
+
+.feedback-form {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f5f5f1;
+}
+
+.feedback-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 0.75rem;
+}
+
+.feedback-form textarea:focus {
+  outline: none;
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+}
+
+.no-submission {
+  text-align: center;
+  padding: 2rem;
+  color: #a8a29e;
+  font-style: italic;
+}
+
+.no-submission p {
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .homework-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .attachments-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}

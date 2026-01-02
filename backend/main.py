@@ -14,6 +14,8 @@ from models import (
     Todo, TodoCreate, TodoUpdate
 )
 from auth import get_current_therapist
+from intake_routes import router as intake_router
+from communication_routes import router as communication_router
 
 # Load environment variables
 load_dotenv()
@@ -39,6 +41,13 @@ def startup_event():
 @app.get("/")
 def read_root():
     return {"message": "Therapy Client Management API"}
+
+
+# Include intake routes
+app.include_router(intake_router)
+
+# Include communication routes (todos, messages, homework)
+app.include_router(communication_router, prefix="/api")
 
 
 # Authentication Endpoints

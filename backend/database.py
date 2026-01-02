@@ -110,6 +110,14 @@ def init_db():
         cursor.execute("ALTER TABLE therapists ADD COLUMN practice_type TEXT")
         print("Added practice_type column to therapists table")
 
+    # Migration: Add ai_assisted_data to sessions table
+    cursor.execute("PRAGMA table_info(sessions)")
+    session_columns_check = [column[1] for column in cursor.fetchall()]
+
+    if 'ai_assisted_data' not in session_columns_check:
+        cursor.execute("ALTER TABLE sessions ADD COLUMN ai_assisted_data TEXT")
+        print("Added ai_assisted_data column to sessions table")
+
     # Create todos table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS todos (
@@ -126,6 +134,116 @@ def init_db():
             FOREIGN KEY (therapist_id) REFERENCES therapists (id),
             FOREIGN KEY (source_session_id) REFERENCES sessions (id),
             FOREIGN KEY (completed_session_id) REFERENCES sessions (id)
+        )
+    """)
+
+    # Create intake_responses table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS intake_responses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_id INTEGER,
+            therapist_id INTEGER NOT NULL,
+            form_type TEXT NOT NULL,
+            responses TEXT NOT NULL,
+            status TEXT DEFAULT 'pending',
+            started_at TIMESTAMP,
+            completed_at TIMESTAMP,
+            reviewed_at TIMESTAMP,
+            link_token TEXT UNIQUE,
+            expires_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES clients (id),
+            FOREIGN KEY (therapist_id) REFERENCES therapists (id)
+        )
+    """)
+
+    # Create assessment_responses table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS assessment_responses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_id INTEGER,
+            therapist_id INTEGER NOT NULL,
+            intake_response_id INTEGER,
+            assessment_id TEXT NOT NULL,
+            responses TEXT NOT NULL,
+            scores TEXT NOT NULL,
+            completed_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES clients (id),
+            FOREIGN KEY (therapist_id) REFERENCES therapists (id),
+            FOREIGN KEY (intake_response_id) REFERENCES intake_responses (id)
+        )
+    """)
+
+    # Create form_links table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS form_links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            therapist_id INTEGER NOT NULL,
+            client_email TEXT NOT NULL,
+            client_name TEXT,
+            link_token TEXT UNIQUE NOT NULL,
+            form_type TEXT NOT NULL,
+            included_assessments TEXT,
+            status TEXT DEFAULT 'sent',
+            expires_at TIMESTAMP NOT NULL,
+            sent_at TIMESTAMP,
+            opened_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (therapist_id) REFERENCES therapists (id)
+        )
+    """)
+
+    # Create messages table (bidirectional correspondence)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sender_id INTEGER NOT NULL,
+            sender_type TEXT NOT NULL,
+            recipient_id INTEGER NOT NULL,
+            recipient_type TEXT NOT NULL,
+            content TEXT NOT NULL,
+            attachments TEXT,
+            related_session_id INTEGER,
+            read BOOLEAN DEFAULT 0,
+            read_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (related_session_id) REFERENCES sessions (id)
+        )
+    """)
+
+    # Create homework_assignments table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS homework_assignments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            therapist_id INTEGER NOT NULL,
+            client_id INTEGER NOT NULL,
+            session_id INTEGER,
+            title TEXT NOT NULL,
+            instructions TEXT NOT NULL,
+            attachments TEXT,
+            due_date DATE,
+            status TEXT DEFAULT 'assigned',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (therapist_id) REFERENCES therapists (id),
+            FOREIGN KEY (client_id) REFERENCES clients (id),
+            FOREIGN KEY (session_id) REFERENCES sessions (id)
+        )
+    """)
+
+    # Create homework_submissions table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS homework_submissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assignment_id INTEGER NOT NULL,
+            client_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            attachments TEXT,
+            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            therapist_feedback TEXT,
+            feedback_at TIMESTAMP,
+            FOREIGN KEY (assignment_id) REFERENCES homework_assignments (id),
+            FOREIGN KEY (client_id) REFERENCES clients (id)
         )
     """)
 

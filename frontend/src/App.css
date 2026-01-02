@@ -2776,3 +2776,54 @@ h4, h5, h6 {
     gap: var(--space-md);
   }
 }
+
+/* Messages View */
+.messages-view {
+  height: calc(100vh - 250px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Homework View */
+.homework-view {
+  padding: var(--space-lg);
+}
+
+.homework-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.homework-section {
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  border: 1px solid var(--color-border);
+}
+
+.homework-section .section-title {
+  margin: 0 0 var(--space-lg) 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* To-Dos Tab in Session Summary */
+.todos-tab {
+  padding: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+  .messages-view {
+    height: calc(100vh - 300px);
+  }
+
+  .homework-view {
+    padding: var(--space-md);
+  }
+
+  .homework-section {
+    padding: var(--space-lg);
+  }
+}

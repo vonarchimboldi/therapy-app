@@ -1,0 +1,250 @@
+/* Transcript Tab */
+
+.transcript-tab {
+  background-color: white;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.5rem;
+  padding: 2rem;
+}
+
+.transcript-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.transcript-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #292524;
+  margin: 0;
+}
+
+.replace-link {
+  background: none;
+  border: none;
+  color: #d97706;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.replace-link:hover {
+  color: #b45309;
+}
+
+.transcript-content {
+  background-color: #fafaf8;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.375rem;
+  padding: 1.5rem;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.transcript-text {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: #292524;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+}
+
+/* Upload Interface */
+.transcript-upload {
+  text-align: center;
+}
+
+.transcript-upload h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #292524;
+  margin: 0 0 0.5rem 0;
+}
+
+.upload-helper {
+  font-size: 0.95rem;
+  color: #78716c;
+  margin-bottom: 2rem;
+}
+
+.dropzone {
+  border: 2px dashed #d6d3ce;
+  border-radius: 0.5rem;
+  padding: 3rem 2rem;
+  background-color: #fafaf8;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dropzone.active {
+  border-color: #d97706;
+  background-color: #fffbeb;
+}
+
+.dropzone:hover {
+  border-color: #a8a29e;
+  background-color: #f5f5f1;
+}
+
+.dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upload-icon {
+  color: #a8a29e;
+  margin-bottom: 0.5rem;
+}
+
+.dropzone-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #292524;
+  margin: 0;
+}
+
+.dropzone-subtitle {
+  font-size: 0.95rem;
+  color: #78716c;
+  margin: 0.5rem 0;
+}
+
+.upload-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.upload-button,
+.paste-button {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.upload-button {
+  background-color: #d97706;
+  color: white;
+  border-color: #d97706;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-button input[type="file"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  cursor: pointer;
+}
+
+.upload-button:hover:not(:disabled) {
+  background-color: #b45309;
+}
+
+.paste-button {
+  background-color: white;
+  color: #57534e;
+}
+
+.paste-button:hover:not(:disabled) {
+  background-color: #f5f5f1;
+}
+
+.upload-button:disabled,
+.paste-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upload-formats {
+  font-size: 0.8rem;
+  color: #a8a29e;
+  margin-top: 0.5rem;
+}
+
+/* Paste Mode */
+.paste-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.paste-mode h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #292524;
+  margin: 0;
+  text-align: left;
+}
+
+.paste-textarea {
+  width: 100%;
+  padding: 1.25rem;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.375rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  resize: vertical;
+  transition: border-color 0.15s ease;
+}
+
+.paste-textarea:focus {
+  outline: none;
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+}
+
+.paste-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.cancel-button,
+.save-button {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid #e5e5e0;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancel-button {
+  background-color: white;
+  color: #78716c;
+}
+
+.cancel-button:hover {
+  background-color: #f5f5f1;
+}
+
+.save-button {
+  background-color: #d97706;
+  color: white;
+  border-color: #d97706;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: #b45309;
+}
+
+.save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

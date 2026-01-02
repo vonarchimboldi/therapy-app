@@ -20,6 +20,8 @@ export default function Landing() {
         <div className="landing-header-content">
           <h1 className="landing-logo">Pier88</h1>
           <div className="landing-header-actions">
+            <Link to="/demo/session" className="btn-secondary">Session Demo</Link>
+            <Link to="/demo/intake" className="btn-secondary">Intake Demo</Link>
             <Link to="/sign-in" className="btn-secondary">Sign In</Link>
             <Link to="/sign-up" className="btn-primary">Sign Up</Link>
           </div>
@@ -35,6 +37,7 @@ export default function Landing() {
             </p>
             <div className="landing-cta">
               <Link to="/sign-up" className="btn-primary btn-large">Get Started</Link>
+              <Link to="/demo/intake" className="btn-secondary btn-large">Try Intake Form</Link>
             </div>
           </div>
 

@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { useAuth, useUser, UserButton } from '@clerk/clerk-react'
 import { getTrackConfig } from '../config/tracks'
 import PracticeTypeModal from '../components/PracticeTypeModal'
+import SendIntakeButton from '../components/intake/SendIntakeButton'
+import MessageThread from '../components/communication/MessageThread'
+import HomeworkAssignmentForm from '../components/communication/HomeworkAssignmentForm'
+import HomeworkAssignmentList from '../components/communication/HomeworkAssignmentList'
 import '../App.css'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
@@ -627,6 +631,7 @@ function Dashboard() {
         </div>
         </div>
         <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
+          <SendIntakeButton practiceType={practiceType || 'therapy'} />
           <UserButton afterSignOutUrl="/" />
           <button className="theme-toggle" onClick={toggleTheme}>
             <span className="theme-toggle-icon">{theme === 'light' ? '🌙' : '☀️'}</span>
@@ -871,6 +876,18 @@ function Dashboard() {
                     onClick={() => setClientView('analytics')}
                   >
                     Analytics
+                  </button>
+                  <button
+                    className={`btn-tab ${clientView === 'messages' ? 'active' : ''}`}
+                    onClick={() => setClientView('messages')}
+                  >
+                    Messages
+                  </button>
+                  <button
+                    className={`btn-tab ${clientView === 'homework' ? 'active' : ''}`}
+                    onClick={() => setClientView('homework')}
+                  >
+                    Homework
                   </button>
                   <button
                     className="btn-primary"
@@ -1494,6 +1511,36 @@ function Dashboard() {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {clientView === 'messages' && (
+                <div className="messages-view">
+                  <MessageThread
+                    clientId={selectedClient.id}
+                    clientName={`${selectedClient.first_name} ${selectedClient.last_name}`}
+                  />
+                </div>
+              )}
+
+              {clientView === 'homework' && (
+                <div className="homework-view">
+                  <div className="homework-sections">
+                    <div className="homework-section">
+                      <h3 className="section-title">Assign New Homework</h3>
+                      <HomeworkAssignmentForm
+                        clientId={selectedClient.id}
+                        onSuccess={() => {
+                          // Optionally refresh the homework list or show a success message
+                        }}
+                      />
+                    </div>
+
+                    <div className="homework-section">
+                      <h3 className="section-title">Homework History</h3>
+                      <HomeworkAssignmentList clientId={selectedClient.id} />
+                    </div>
+                  </div>
                 </div>
               )}
             </>
