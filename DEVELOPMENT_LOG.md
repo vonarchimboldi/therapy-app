@@ -1862,3 +1862,366 @@ The application is production-ready for deployment with proper environment confi
 **Total Lines of Code:** ~3500+ (Backend: ~600, Frontend: ~1400 JS + ~2100 CSS)
 **Status:** Active Development - Authentication System Complete
 **Latest Changes:** Multi-therapist authentication, landing page, solar punk design
+
+---
+
+## Phase 11: Communication & Intake System (January 1, 2025)
+
+### Overview
+Complete overhaul adding professional-grade communication features: session to-dos, client messaging, homework assignments, intake forms, and clinical assessments.
+
+### Major Features Added
+
+#### 1. Session To-Dos with Carry-Forward
+**Purpose:** Track follow-up items per session that automatically carry forward until resolved.
+
+**Components:**
+- `frontend/src/components/communication/SessionToDos.jsx`
+- Integrated into SessionSummary page as new "To-Dos" tab
+
+**Features:**
+- Add to-dos during sessions
+- Mark complete/incomplete
+- Auto-carry forward to next session
+- Badge indicator for carried-forward items
+- Delete functionality
+
+**Database:**
+```sql
+CREATE TABLE todos (
+    id INTEGER PRIMARY KEY,
+    client_id INTEGER NOT NULL,
+    therapist_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    status TEXT DEFAULT 'open',
+    source_session_id INTEGER,
+    completed_session_id INTEGER,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+)
+```
+
+**API Endpoints:**
+- `GET /api/todos/client/{client_id}` - Get all todos for client
+- `GET /api/todos/session/{session_id}` - Get session todos (includes carried-forward)
+- `POST /api/todos` - Create new todo
+- `PATCH /api/todos/{todo_id}` - Update todo
+- `DELETE /api/todos/{todo_id}` - Delete todo
+
+#### 2. Bidirectional Client-Therapist Messaging
+**Purpose:** Rich messaging system with multimedia support and read receipts.
+
+**Components:**
+- `MessageThread.jsx` - Full messaging interface
+- `RichMessageComposer.jsx` - Composer with rich media support
+
+**Features:**
+- Text messages with multiline support
+- Image attachments (with preview)
+- File attachments (PDFs, docs)
+- Link attachments with rich previews
+- Read status tracking
+- Real-time updates (10s polling)
+- Auto-scroll to latest
+- Sent/received message bubbles
+
+**Rich Link Previews:**
+- Backend fetches OpenGraph metadata
+- Displays title, description, thumbnail
+- Fallback to Twitter Cards and HTML meta tags
+- Graceful degradation for sites without metadata
+
+**Database:**
+```sql
+CREATE TABLE messages (
+    id INTEGER PRIMARY KEY,
+    sender_id INTEGER NOT NULL,
+    sender_type TEXT NOT NULL,
+    recipient_id INTEGER NOT NULL,
+    recipient_type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    attachments TEXT,
+    related_session_id INTEGER,
+    read BOOLEAN DEFAULT 0,
+    read_at TIMESTAMP,
+    created_at TIMESTAMP
+)
+```
+
+**API Endpoints:**
+- `GET /api/messages/thread/{other_party_id}` - Get message thread
+- `POST /api/messages` - Send message
+- `PATCH /api/messages/{message_id}/read` - Mark as read
+- `GET /api/messages/unread-count` - Get unread count
+- `POST /api/fetch-link-preview?url={url}` - Fetch OpenGraph metadata
+
+#### 3. Homework Assignment System
+**Purpose:** Assign, submit, and review homework with therapist feedback.
+
+**Components:**
+- `HomeworkAssignmentForm.jsx` - Create assignments
+- `HomeworkAssignmentList.jsx` - View with submissions
+- `ClientHomeworkView.jsx` - Client submission interface
+
+**Features:**
+- Title, instructions, due date
+- File attachments
+- Optional link to session
+- Client submission with attachments
+- Therapist feedback
+- Status tracking (assigned → submitted → reviewed)
+- Overdue indicators
+
+**Database:**
+```sql
+CREATE TABLE homework_assignments (
+    id INTEGER PRIMARY KEY,
+    therapist_id INTEGER NOT NULL,
+    client_id INTEGER NOT NULL,
+    session_id INTEGER,
+    title TEXT NOT NULL,
+    instructions TEXT NOT NULL,
+    attachments TEXT,
+    due_date DATE,
+    status TEXT DEFAULT 'assigned',
+    created_at TIMESTAMP
+)
+
+CREATE TABLE homework_submissions (
+    id INTEGER PRIMARY KEY,
+    assignment_id INTEGER NOT NULL,
+    client_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    attachments TEXT,
+    submitted_at TIMESTAMP,
+    therapist_feedback TEXT,
+    feedback_at TIMESTAMP
+)
+```
+
+**API Endpoints:**
+- `GET /api/homework/client/{client_id}` - Get assignments with submissions
+- `POST /api/homework` - Create assignment
+- `PATCH /api/homework/{assignment_id}` - Update assignment
+- `POST /api/homework/{assignment_id}/submit` - Submit homework (client)
+- `PATCH /api/homework/submission/{submission_id}/feedback` - Add feedback
+
+#### 4. Client Intake Forms & Assessments
+**Purpose:** Streamlined onboarding with practice-specific forms and clinical assessments.
+
+**Components:**
+- `IntakePortal.jsx` - Multi-step form wizard
+- `IntakePortalDemo.jsx` - Demo without auth
+- `SendIntakeButton.jsx` - Generate secure links
+- `AssessmentViewer.jsx` - Interactive assessments
+
+**Intake Form Types:**
+- **Quick Intake** (10 min): Basic info, presenting concerns, scheduling
+- **Comprehensive** (40+ min): Full clinical history (optional, sent separately)
+
+**Practice-Specific Forms:**
+- Therapy: Presenting concerns, previous therapy, crisis screening
+- Training: Fitness goals, activity level, injuries, doctor clearance
+- Tutoring: Subjects, academic needs, test prep
+- Freelance: Project type, timeline, budget
+
+**Clinical Assessments:**
+1. **PHQ-9** - Depression screening (9 questions, clinical ranges)
+2. **GAD-7** - Anxiety screening (7 questions)
+3. **Big Five** - Personality (30 questions, 5 scales with reverse scoring)
+4. **Attachment Style** - 18 questions, 4 attachment types
+5. **Four Masculine Archetypes** - 24 questions (King, Warrior, Magician, Lover)
+
+**Key Design Decision:**
+User feedback led to separation of intake from assessments:
+- Initial intake is quick (who/what/why)
+- Assessments sent separately when clinically appropriate
+- Prevents overwhelming new clients
+
+**Database:**
+```sql
+CREATE TABLE intake_responses (
+    id INTEGER PRIMARY KEY,
+    client_id INTEGER,
+    therapist_id INTEGER NOT NULL,
+    form_type TEXT NOT NULL,
+    responses TEXT NOT NULL,
+    status TEXT DEFAULT 'pending',
+    started_at TIMESTAMP,
+    completed_at TIMESTAMP,
+    link_token TEXT UNIQUE,
+    expires_at TIMESTAMP,
+    created_at TIMESTAMP
+)
+
+CREATE TABLE assessment_responses (
+    id INTEGER PRIMARY KEY,
+    client_id INTEGER,
+    therapist_id INTEGER NOT NULL,
+    intake_response_id INTEGER,
+    assessment_id TEXT NOT NULL,
+    responses TEXT NOT NULL,
+    scores TEXT NOT NULL,
+    completed_at TIMESTAMP,
+    created_at TIMESTAMP
+)
+
+CREATE TABLE form_links (
+    id INTEGER PRIMARY KEY,
+    therapist_id INTEGER NOT NULL,
+    client_email TEXT NOT NULL,
+    client_name TEXT,
+    link_token TEXT UNIQUE NOT NULL,
+    form_type TEXT NOT NULL,
+    included_assessments TEXT,
+    status TEXT DEFAULT 'sent',
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP
+)
+```
+
+**Security Features:**
+- Cryptographically secure tokens (32 bytes, URL-safe)
+- Expiring links (3, 7, 14, or 30 days)
+- Token-based access (no authentication required for clients)
+- One-time use for intake forms
+
+**API Endpoints:**
+- `POST /api/intake/create-link` - Generate secure link (therapist)
+- `GET /api/intake/form/:token` - Get form by token (public)
+- `POST /api/intake/submit/:token` - Submit responses (public)
+- `POST /api/intake/submit-assessment/:token` - Submit assessment (public)
+- `POST /api/intake/complete/:token` - Mark complete (public)
+- `GET /api/intake/pending` - Get pending intakes (therapist)
+- `GET /api/intake/review/:id` - Review completed intake (therapist)
+
+#### 5. File Upload System
+**Purpose:** Handle image, PDF, and document attachments.
+
+**Features:**
+- Unique filename generation (UUID)
+- Type detection (image/video/pdf/file)
+- Served via `/api/uploads/{filename}`
+- Used by messages and homework
+
+**API Endpoints:**
+- `POST /api/upload` - Upload file
+- `GET /api/uploads/{filename}` - Serve uploaded file
+
+### Frontend Integration
+
+**Dashboard Updates:**
+Added two new tabs to client profile:
+- **Messages Tab** - Full MessageThread component
+- **Homework Tab** - Split into "Assign New" and "History" sections
+
+**SessionSummary Updates:**
+Added **To-Dos Tab** alongside Review, Summary, Transcript tabs
+
+**App Routing:**
+- `/demo/session` - SessionSummary demo
+- `/demo/intake` - IntakePortal demo
+- `/intake/:token` - Live intake form (public access)
+- `/session/:sessionId` - Session with to-dos
+
+### Backend Architecture
+
+**New Route Files:**
+- `backend/communication_routes.py` - 40+ endpoints for todos, messages, homework
+- `backend/intake_routes.py` - 12 endpoints for intake forms and assessments
+
+**Dependencies Added:**
+- `beautifulsoup4` - HTML parsing for link previews
+- `requests` - Already present, used for HTTP requests
+
+**Models Added (backend/models.py):**
+- Todo, TodoCreate, TodoUpdate
+- Message, MessageCreate, MessageUpdate
+- HomeworkAssignment, HomeworkAssignmentCreate, HomeworkAssignmentUpdate
+- HomeworkSubmission, HomeworkSubmissionCreate, HomeworkSubmissionUpdate
+- FormLinkCreate, FormLink
+- IntakeResponse, IntakeResponseCreate, IntakeResponseUpdate
+- AssessmentResponse, AssessmentResponseCreate
+
+### Design Philosophy
+
+**Color Scheme:**
+- Primary: `#d97706` (amber) - Action buttons, active states
+- Secondary: `#78716c` (stone) - Secondary text
+- Background: `#fafaf8` (warm gray) - Cards, sections
+- Text: `#292524` (dark stone) - Primary text
+- Earth tones throughout for warm, professional feel
+
+**Typography:**
+- UI elements: Sans-serif (system fonts)
+- Body text/reading: Serif fonts (Lora, Georgia)
+- Forms: Clear, accessible sizing
+
+**UX Principles:**
+- Multi-step forms with progress indicators
+- Auto-save with 2-second debounce
+- Optimistic UI updates
+- Graceful error handling
+- Mobile-responsive design
+
+### Technical Stats
+
+**Files Created:** 46 files
+**Lines Added:** 10,402+ lines
+**Components:** 21 new React components
+**API Endpoints:** 52 new endpoints
+**Database Tables:** 7 new tables
+
+### Deployment Stack
+
+**Frontend:**
+- Hosting: Vercel
+- Domain: pier88.io (via Cloudflare DNS)
+- Auth: Clerk
+- Framework: React + Vite
+
+**Backend:**
+- Hosting: Render
+- Framework: FastAPI
+- Database: SQLite
+- Auth: JWT with Clerk integration
+
+**To Deploy Frontend Updates to Vercel:**
+```bash
+cd frontend
+vercel --prod
+```
+
+**To Deploy Backend Updates to Render:**
+1. Push to GitHub (already done)
+2. Render auto-deploys from main branch
+3. Check deployment at Render dashboard
+
+### Testing Checklist
+
+- [ ] Session to-dos: Create, complete, carry-forward
+- [ ] Messaging: Send text, images, files, links
+- [ ] Link previews: Test with YouTube, GitHub, news sites
+- [ ] Homework: Assign, submit, add feedback
+- [ ] Intake forms: Send link, complete form, review responses
+- [ ] Assessments: Complete PHQ-9, view scores
+- [ ] File uploads: Images, PDFs, documents
+- [ ] Mobile responsiveness: All components
+
+### Future Enhancements
+
+**Potential additions:**
+- Real-time WebSocket messaging (vs. polling)
+- Push notifications for new messages
+- Email integration for intake invites
+- SMS reminders for homework due dates
+- Video/audio message attachments
+- Collaborative note-taking
+- Client portal login (alternative to token links)
+
+### Git Commit
+
+Committed as: `b21ec6f - Add comprehensive communication and intake system`
+
+Pushed to: `github.com/vonarchimboldi/therapy-app`
+
